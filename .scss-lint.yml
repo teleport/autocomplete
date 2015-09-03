@@ -1,0 +1,5 @@
+linters:
+  SelectorFormat:
+    convention: strict_BEM
+  PropertySortOrder:
+    enabled: false

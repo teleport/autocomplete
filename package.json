@@ -1,0 +1,79 @@
+{
+  "name": "teleport-autocomplete",
+  "version": "0.1.0",
+  "description": "Teleport Cities Autocomplete",
+  "keywords": [
+    "autocomplete",
+    "cities"
+  ],
+  "homepage": "https://github.com/teleport/autocomplete#readme",
+  "bugs": {
+    "url": "https://github.com/teleport/autocomplete/issues"
+  },
+  "license": "MIT",
+  "author": "Teleport Inc.",
+  "main": "dist/autocomplete.bundled.js",
+  "repository": "teleport/autocomplete",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "es6-promise": "^3.0.2",
+    "halfred": "^1.0.0",
+    "lodash": "^3.10.1",
+    "ractive": "^0.7.3",
+    "whatwg-fetch": "^0.9.0"
+  },
+  "devDependencies": {
+    "babel": "^5.8.23",
+    "babel-eslint": "^4.1.1",
+    "babelify": "^6.3.0",
+    "browser-sync": "^2.8.3",
+    "browserify": "^11.0.1",
+    "del": "^2.0.0",
+    "eslint": "^1.3.1",
+    "eslint-config-airbnb": "0.0.8",
+    "gulp": "^3.9.0",
+    "gulp-autoprefixer": "^2.3.1",
+    "gulp-concat": "^2.6.0",
+    "gulp-if": "^1.2.5",
+    "gulp-load-plugins": "^0.10.0",
+    "gulp-minify-css": "^1.2.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-sass": "^2.0.4",
+    "gulp-sourcemaps": "^1.5.2",
+    "gulp-uglify": "^1.4.0",
+    "gulp-util": "^3.0.6",
+    "ractive-browserify": "^0.7.1",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "^3.4.0"
+  },
+  "browserify": {
+    "transform": [
+      "babelify",
+      [
+        "ractive-browserify",
+        {
+          "extension": "rac",
+          "justTemplate": true
+        }
+      ]
+    ]
+  },
+  "eslintConfig": {
+    "extends": "airbnb/base",
+    "env": {
+      "browser": true,
+      "es6": true
+    },
+    "rules": {
+      "default-case": 0,
+      "guard-for-in": 0,
+      "strict": 0
+    },
+    "ecmaFeatures": {
+      "modules": true
+    }
+  }
+}

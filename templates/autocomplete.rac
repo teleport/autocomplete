@@ -1,0 +1,19 @@
+<div class="autocomplete">
+  <input type="text" {{#if tabindex}}tabindex="{{tabindex}}"{{/if}} autocomplete="off"
+    placeholder="{{placeholder}}" value="{{query}}" on-keydown="handleKeys()">
+
+  {{#if loading}}
+    <div class="loader"><div></div></div>
+  {{/if}}
+
+  <ul>
+    {{#list:i}}
+      <li class="ac-item {{#if activeItem === i}}active{{/if}}" on-click="select(.)">
+        {{{wrapMatches(displayedKey(.))}}}
+      </li>
+    {{elseif query && !loading && !value}}
+      <li class="no-results">{{this['no-results']}}</li>
+    {{/}}
+  </ul>
+
+</div>

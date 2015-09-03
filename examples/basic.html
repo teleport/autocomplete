@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+	  <title>Teleport Autocomplete Example</title>
+    <link rel="stylesheet" href="/dist/teleport-autocomplete.css">
+    <style>
+      .container {
+        width: 500px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Autocomplete Example</h1>
+    <div class="container"></div>
+
+    <script src="/dist/teleport-autocomplete.bundled.js"></script>
+    <script>
+      window.autocomplete = new TeleportAutocomplete({
+        el: '.container',
+        data: {
+          'display-key': 'title',
+          remote: function() {}
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,68 @@
+input[type="text"] {
+  padding: 0.25em;
+  border: solid 1px transparent;
+  background-color: #fafafa;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.35);
+  font-size: 1.25em;
+  font-weight: bold;
+  -webkit-appearance: none;
+  border-radius: 0; }
+  input[type="text"]::-webkit-input-placeholder {
+    color: #ccc;
+    -webkit-font-smoothing: antialiased; }
+  input[type="text"]::-moz-placeholder {
+    color: #ccc;
+    -webkit-font-smoothing: antialiased; }
+  input[type="text"]:-ms-input-placeholder {
+    color: #ccc;
+    -webkit-font-smoothing: antialiased; }
+  input[type="text"]::placeholder {
+    color: #ccc;
+    -webkit-font-smoothing: antialiased; }
+  input[type="text"]:focus {
+    border-bottom: solid 1px #666;
+    outline: none; }
+  input[type="text"]::-ms-clear {
+    display: none; }
+
+.autocomplete {
+  position: relative; }
+  .autocomplete .loader {
+    position: absolute;
+    top: 0.75em;
+    right: 0.625em; }
+    .autocomplete .loader div {
+      width: 0.9375em;
+      height: 0.9375em; }
+  .autocomplete ul {
+    list-style-type: none;
+    margin: 0;
+    padding-left: 0;
+    position: absolute;
+    z-index: 1;
+    width: 100%;
+    margin-top: -1px;
+    color: #979797;
+    background-color: white;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.35);
+    font-size: 0.875em; }
+  .autocomplete li {
+    overflow: hidden;
+    padding: 0.35714em 0.71429em;
+    cursor: pointer;
+    -webkit-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
+    white-space: nowrap;
+    text-overflow: ellipsis; }
+    .autocomplete li:hover, .autocomplete li.active {
+      background-color: #ddd; }
+    .autocomplete li.no-results, .autocomplete li.no-results:hover {
+      cursor: default;
+      background-color: white; }
+    .autocomplete li span {
+      color: #4a4a4a;
+      font-weight: bold; }
+
+/*# sourceMappingURL=teleport-autocomplete.css.map */

@@ -1,0 +1,95 @@
+@function em($target-px, $context: 16px) {
+  $target-px: $target-px / ($target-px * 0 + 1);
+  $context: $context / ($context * 0 + 1);
+  @return ($target-px / $context) * 1em;
+}
+
+input[type="text"] {
+  padding: em(5px, 20px);
+
+  border: solid 1px transparent;
+  background-color: #fafafa;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, .35);
+
+  font-size: em(20px);
+  font-weight: bold;
+
+  -webkit-appearance: none;
+  border-radius: 0;
+
+  &::placeholder {
+    color: #ccc;
+
+    -webkit-font-smoothing: antialiased;
+  }
+
+  &:focus {
+    border-bottom: solid 1px #666;
+    outline: none;
+
+  }
+
+  &::-ms-clear {
+    display: none;
+  }
+}
+
+.autocomplete {
+  position: relative;
+
+  .loader {
+    position: absolute;
+    top: em(12px);
+    right: em(10px);
+
+    div {
+      width: em(15px);
+      height: em(15px);
+    }
+  }
+
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding-left: 0;
+
+    position: absolute;
+    z-index: 1;
+
+    width: 100%;
+    margin-top: -1px;
+
+    color: #979797;
+    background-color: white;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, .35);
+
+    font-size: em(14px);
+  }
+
+  li {
+    overflow: hidden;
+
+    padding: em(5px, 14px) em(10px, 14px);
+
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    &:hover, &.active {
+      background-color: #ddd;
+    }
+
+    &.no-results, &.no-results:hover {
+      cursor: default;
+
+      background-color: white;
+    }
+
+    span {
+      color: #4a4a4a;
+
+      font-weight: bold;
+    }
+  }
+}
