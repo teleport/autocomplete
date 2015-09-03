@@ -1,0 +1,106 @@
+/*! teleport-autocomplete - v0.1.0 | https://github.com/teleport/autocomplete#readme | MIT */
+@-webkit-keyframes ball-scale-ripple {
+  0% {
+    -webkit-transform: scale(0.1);
+            transform: scale(0.1);
+    opacity: 1; }
+  70% {
+    -webkit-transform: scale(1);
+            transform: scale(1);
+    opacity: .7; }
+  100% {
+    opacity: 0; } }
+
+@keyframes ball-scale-ripple {
+  0% {
+    -webkit-transform: scale(0.1);
+            transform: scale(0.1);
+    opacity: 1; }
+  70% {
+    -webkit-transform: scale(1);
+            transform: scale(1);
+    opacity: .7; }
+  100% {
+    opacity: 0; } }
+
+.loader > div {
+  width: 5em;
+  height: 5em;
+  -webkit-animation: ball-scale-ripple 1s 0s infinite cubic-bezier(0.21, 0.53, 0.56, 0.8);
+          animation: ball-scale-ripple 1s 0s infinite cubic-bezier(0.21, 0.53, 0.56, 0.8);
+  border: solid 2px #4A4A4A;
+  border-radius: 100%;
+  -webkit-animation-fill-mode: both;
+          animation-fill-mode: both; }
+
+.tp-autocomplete {
+  position: relative; }
+  .tp-autocomplete .loader {
+    position: absolute;
+    top: 0.75em;
+    right: 0.625em; }
+    .tp-autocomplete .loader div {
+      width: 0.9375em;
+      height: 0.9375em; }
+
+.tp-ac__input {
+  width: 100%;
+  padding: 0.25em;
+  border: solid 1px transparent;
+  border-radius: 0;
+  background-color: #fafafa;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.35);
+  font-size: 1.25em;
+  font-weight: bold;
+  -webkit-appearance: none; }
+  .tp-ac__input::-webkit-input-placeholder {
+    color: #ccc;
+    -webkit-font-smoothing: antialiased; }
+  .tp-ac__input::-moz-placeholder {
+    color: #ccc;
+    -webkit-font-smoothing: antialiased; }
+  .tp-ac__input:-ms-input-placeholder {
+    color: #ccc;
+    -webkit-font-smoothing: antialiased; }
+  .tp-ac__input::placeholder {
+    color: #ccc;
+    -webkit-font-smoothing: antialiased; }
+  .tp-ac__input:focus {
+    border-bottom: solid 1px #666;
+    outline: none; }
+  .tp-ac__input::-ms-clear {
+    display: none; }
+
+.tp-ac__list {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  margin: 0;
+  margin-top: -1px;
+  padding-left: 0;
+  list-style-type: none;
+  color: #979797;
+  background-color: white;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.35);
+  font-size: 0.875em; }
+
+.tp-ac__item {
+  overflow: hidden;
+  padding: 0.35714em 0.71429em;
+  cursor: pointer;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  white-space: nowrap;
+  text-overflow: ellipsis; }
+  .tp-ac__item:hover, .tp-ac__item.is-active {
+    background-color: #ddd; }
+  .tp-ac__item.tp-ac__no-results, .tp-ac__item.tp-ac__no-results:hover {
+    cursor: default;
+    background-color: white; }
+  .tp-ac__item span {
+    color: #4a4a4a;
+    font-weight: bold; }
+
+/*# sourceMappingURL=teleport-autocomplete.css.map */

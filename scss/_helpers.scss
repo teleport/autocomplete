@@ -1,0 +1,6 @@
+// EM Helper
+@function em($target-px, $context: 16px) {
+  $target-px: $target-px / ($target-px * 0 + 1);
+  $context: $context / ($context * 0 + 1);
+  @return ($target-px / $context) * 1em;
+}
