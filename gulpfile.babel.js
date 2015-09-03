@@ -16,6 +16,12 @@ const bs = browserSync.create();
 const $ = gulpLoadPlugins();
 
 
+import pkg from './package.json';
+
+const BANNER = `/*! ${pkg.name} - v${pkg.version} | ${pkg.homepage} | ${pkg.license} */
+`;
+
+
 // ----------------------------- BROWSERIFY ------------------------------------
 
 // Browserify params
@@ -33,6 +39,7 @@ const rebundle = (bundler) => {
     .pipe(buffer())
     .pipe($.sourcemaps.init({ loadMaps: true }))
     .pipe($.sourcemaps.write('./'))
+    .pipe($.if('*.js', $.header(BANNER)))
     .pipe(gulp.dest('dist'))
     .pipe(bs.reload({ stream: true }));
 };
@@ -75,6 +82,7 @@ gulp.task('sass', () => {
       prefix: 'teleport-',
     }))
     .pipe($.sourcemaps.write('.'))
+    .pipe($.if('*.css', $.header(BANNER)))
     .pipe(gulp.dest('dist'))
     .pipe($.if('*.css', bs.reload({ stream: true })));
 });
@@ -107,6 +115,14 @@ gulp.task('dist:css', ['sass'], () => {
     }))
     .pipe($.sourcemaps.write('.'))
     .pipe(gulp.dest('dist'));
+});
+
+
+/**
+ * Release package
+ */
+gulp.task('release', ['dist:js', 'dist:css'], () => {
+
 });
 
 

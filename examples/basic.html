@@ -6,25 +6,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
 	  <title>Teleport Autocomplete Example</title>
+    <link rel="prefetch stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700,800,600">
     <link rel="stylesheet" href="/dist/teleport-autocomplete.css">
     <style>
+      * { box-sizing: border-box; }
+
+      html, body, #container {
+        width: 100%;
+        height: 100%;
+      }
+
+      html {
+        font-size: 16px;
+      }
+
+      body {
+        font-family: 'Open Sans', sans-serif;
+        color: #4a4a4a;
+      }
+
       .container {
-        width: 500px;
+        width: 400px;
       }
     </style>
   </head>
   <body>
-    <h1>Autocomplete Example</h1>
+    <h1>City Autocomplete Example</h1>
     <div class="container"></div>
+
+    <br>
+
+    <h3>Result history:</h3>
+    <ul class="results"></ul>
 
     <script src="/dist/teleport-autocomplete.bundled.js"></script>
     <script>
-      window.autocomplete = new TeleportAutocomplete({
-        el: '.container',
-        data: {
-          'display-key': 'title',
-          remote: function() {}
-        }
+      var ac = window.autocomplete = new TeleportAutocomplete({
+        el: '.container'
+      });
+
+      ac.on('set', function(e) {
+        document.querySelector('.results')
+          .insertAdjacentHTML('afterend', '<li>' + JSON.stringify(e.value) + '</li>');
       });
     </script>
   </body>

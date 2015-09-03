@@ -1,7 +1,8 @@
 import 'whatwg-fetch';
-import 'es6-promise';
-import halfred from 'halfred';
+import { polyfill } from 'es6-promise';
+polyfill();
 
+import halfred from 'halfred';
 
 const API_PROXY = 'https://apiproxy.prestaging.teleport.ee';
 
@@ -9,11 +10,10 @@ const API_PROXY = 'https://apiproxy.prestaging.teleport.ee';
  * Cities API call
  */
 export function getCities(query) {
-  return fetch(`${API_PROXY}/api/cities/?search=${query}&embed=city:search-results/city:item/city:country&embed=city:search-results/city:item/city:admin1_division`, {
-    headers: { Accept: 'application/json' },
-  }).then((res) => res.json())
-    .then((json) => halfred.parse(json).embeddedArray('city:search-results'))
-    .then((results) => results.map((res) => {
+  return fetch(`${API_PROXY}/api/cities/?search=${query}&embed=city:search-results/city:item/city:country&embed=city:search-results/city:item/city:admin1_division`)
+    .then(res => res.json())
+    .then(json => halfred.parse(json).embeddedArray('city:search-results'))
+    .then(results => results.map(res => {
       const city = res.embedded('city:item');
       const admin1Division = city.embedded('city:admin1_division');
       const country = city.embedded('city:country');

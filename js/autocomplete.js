@@ -1,5 +1,6 @@
 import Ractive from 'ractive/ractive.runtime';
-import _defaults from 'lodash/object/defaults';
+
+import _assign from 'lodash/object/assign';
 import _debounce from 'lodash/function/debounce';
 import _take from 'lodash/array/take';
 
@@ -7,7 +8,7 @@ import { getCities } from './api';
 import AutocompleteTemplate from '../templates/autocomplete.rac';
 
 
-const REQUIRED_PARAMS = ['display-key', 'remote'];
+const REQUIRED_PARAMS = ['displayKey', 'remoteFn'];
 const REMOTE_DEBOUNCE = 250;
 
 const Key = { BACK: 8, TAB: 9, ENTER: 13, UP: 38, DOWN: 40 };
@@ -32,7 +33,8 @@ const Autocomplete = Ractive.extend({
 
   data: () => ({
     // Param defaults
-    'max-items': (window.matchMedia('screen and (max-width: 24em)').matches ? 5 : 10),
+    maxItems: 10,
+    displayKey: 'title',
     'no-results': 'No matches',
 
     // User input
@@ -63,25 +65,27 @@ const Autocomplete = Ractive.extend({
     },
   }),
 
+
   /**
-   * Validate params
+   * Pull params from data or directly from object
+   * and validate params
    */
   onconfig() {
-    const config = this.get();
-    REQUIRED_PARAMS.forEach((p) => {
-      if (!config[p]) throw new Error(`Autocomplete param missing: ${p}`);
+    _assign(this, {
+      remoteFn: this.get('remote-fn') || this.get('remote') || this.get('remoteFn') || getCities,
+      displayKey: this.get('display-key') || this.get('displayKey') || 'title',
+      maxItems: this.get('max-items') || this.get('maxItems'),
+      fetchRemote: _debounce(this.fetchRemote, REMOTE_DEBOUNCE),
     });
 
-    _defaults(this, {
-      remoteFn: getCities,
-      displayKey: this.get('display-key'),
-      maxItems: this.get('max-items'),
-      fetchRemote: _debounce(this.fetchRemote, REMOTE_DEBOUNCE),
+    REQUIRED_PARAMS.forEach((p) => {
+      if (!this[p]) throw new Error(`Autocomplete parameter missing: ${p}`);
     });
 
     const query = this.get('displayedKey').call(this, this.get('value'));
     this.set('query', query);
   },
+
 
   /**
    * Start listening input
@@ -89,7 +93,6 @@ const Autocomplete = Ractive.extend({
   oninit() {
     this.observe('query', (query) => {
       if (this.queryChanging) return;
-
       if (query) {
         this.set('loading', true);
         this.fetchRemote(query);
@@ -99,15 +102,16 @@ const Autocomplete = Ractive.extend({
     }, { init: false });
   },
 
+
   /**
    * Close list on blur
    */
   onrender() {
-    const acElem = this.find('.autocomplete');
+    const acElem = this.find('.tp-autocomplete');
 
     this.closeOnBlur = (e) => {
       if (acElem && acElem.contains(e.target)) return;
-      const isListItem = e.target && e.target.classList.contains('ac-item');
+      const isListItem = e.target && e.target.classList.contains('tp-ac__item');
       if (!this.get('value') && !isListItem) this.set('query', '');
       this.set('list', []);
     };
@@ -115,9 +119,11 @@ const Autocomplete = Ractive.extend({
     document.addEventListener('click', this.closeOnBlur, true);
   },
 
+
   onteardown() {
     document.removeEventListener('click', this.closeOnBlur);
   },
+
 
   /**
    * Query remote source
@@ -127,6 +133,7 @@ const Autocomplete = Ractive.extend({
       return this.set('list', _take(results, this.maxItems));
     }).then(() => this.set({ loading: false, activeItem: 0 }));
   },
+
 
   /**
    * Handle keyboard input
@@ -157,6 +164,7 @@ const Autocomplete = Ractive.extend({
     }
   },
 
+
   /**
    * Select one match
    */
@@ -164,6 +172,7 @@ const Autocomplete = Ractive.extend({
     this.queryChanging = true;
 
     const query = this.get('displayedKey').call(this, value);
+    this.fire('set', { value, query });
     this.set({ value, query, list: [], loading: false }).then(() => this.queryChanging = false);
   },
 });
