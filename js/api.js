@@ -7,6 +7,16 @@ import halfred from 'halfred';
 const API_URL = 'https://api.teleport.org/api';
 
 /**
+ * String.prototype.startsWith polyfill
+ */
+if (!String.prototype.startsWith) {
+  String.prototype.startsWith = function(searchString, position) {
+    position = position || 0;
+    return this.indexOf(searchString, position) === position;
+  };
+}
+
+/**
  * Cities API call
  */
 export function getCities(query) {

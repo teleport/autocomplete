@@ -25,6 +25,16 @@ var _halfred2 = _interopRequireDefault(_halfred);
 var API_URL = 'https://api.teleport.org/api';
 
 /**
+ * String.prototype.startsWith polyfill
+ */
+if (!String.prototype.startsWith) {
+  String.prototype.startsWith = function (searchString, position) {
+    position = position || 0;
+    return this.indexOf(searchString, position) === position;
+  };
+}
+
+/**
  * Cities API call
  */
 
@@ -17366,7 +17376,7 @@ module.exports = {
           "p": [
             2,
             3,
-            33
+            32
           ],
           "t": 7,
           "e": "input",
@@ -17381,7 +17391,7 @@ module.exports = {
                 "p": [
                   3,
                   18,
-                  157
+                  155
                 ]
               }
             ],
@@ -17392,7 +17402,7 @@ module.exports = {
                 "p": [
                   3,
                   42,
-                  181
+                  179
                 ]
               }
             ]
@@ -17408,7 +17418,7 @@ module.exports = {
                   "p": [
                     2,
                     69,
-                    99
+                    98
                   ]
                 },
                 "\""
@@ -17418,7 +17428,7 @@ module.exports = {
               "p": [
                 2,
                 43,
-                73
+                72
               ]
             }
           ],
@@ -17440,7 +17450,7 @@ module.exports = {
               "p": [
                 6,
                 5,
-                245
+                240
               ],
               "t": 7,
               "e": "div",
@@ -17452,7 +17462,7 @@ module.exports = {
                   "p": [
                     6,
                     25,
-                    265
+                    260
                   ],
                   "t": 7,
                   "e": "div"
@@ -17465,7 +17475,7 @@ module.exports = {
           "p": [
             5,
             3,
-            224
+            220
           ]
         },
         " ",
@@ -17473,7 +17483,7 @@ module.exports = {
           "p": [
             9,
             3,
-            299
+            291
           ],
           "t": 7,
           "e": "ul",
@@ -17488,7 +17498,7 @@ module.exports = {
                   "p": [
                     11,
                     7,
-                    348
+                    338
                   ],
                   "t": 7,
                   "e": "li",
@@ -17511,7 +17521,7 @@ module.exports = {
                         "p": [
                           11,
                           30,
-                          371
+                          361
                         ]
                       }
                     ]
@@ -17541,7 +17551,7 @@ module.exports = {
                       "p": [
                         12,
                         9,
-                        444
+                        433
                       ]
                     }
                   ]
@@ -17552,7 +17562,7 @@ module.exports = {
               "p": [
                 10,
                 5,
-                329
+                320
               ]
             },
             {
@@ -17575,7 +17585,7 @@ module.exports = {
                       "p": [
                         15,
                         7,
-                        543
+                        529
                       ],
                       "t": 7,
                       "e": "li",
@@ -17597,7 +17607,7 @@ module.exports = {
                           "p": [
                             15,
                             37,
-                            573
+                            559
                           ]
                         }
                       ]
