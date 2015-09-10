@@ -46,8 +46,19 @@
       });
 
       ac.on('set', function(e) {
+        var result
+        if (e.value) {
+          var fields = []
+          for (key in e.value) {
+            fields.push(key + ": <b>" + e.value[key] + "</b>")
+          }
+          result = fields.join(' ')
+        }
+        else {
+          result = 'null'
+        }
         document.querySelector('.results')
-          .insertAdjacentHTML('afterend', '<li>' + JSON.stringify(e.value) + '</li>');
+          .insertAdjacentHTML('afterend', '<li>' + result + '</li>');
       });
     </script>
   </body>
