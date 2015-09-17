@@ -5,7 +5,7 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
-	  <title>Teleport Autocomplete Example</title>
+    <title>Teleport Autocomplete Example</title>
     <link rel="prefetch stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700,800,600">
     <link rel="stylesheet" href="/dist/teleport-autocomplete.css">
     <style>
@@ -46,8 +46,19 @@
       });
 
       ac.on('set', function(e) {
+        var result
+        if (e.value) {
+          var fields = []
+          for (key in e.value) {
+            fields.push(key + ": <b>" + e.value[key] + "</b>")
+          }
+          result = fields.join(' ')
+        }
+        else {
+          result = 'null'
+        }
         document.querySelector('.results')
-          .insertAdjacentHTML('afterend', '<li>' + JSON.stringify(e.value) + '</li>');
+          .insertAdjacentHTML('afterend', '<li>' + result + '</li>');
       });
     </script>
   </body>

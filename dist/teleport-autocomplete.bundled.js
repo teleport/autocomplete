@@ -5,9 +5,6 @@
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
-
-var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
-
 exports.getCities = getCities;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -22,14 +19,24 @@ var _halfred2 = _interopRequireDefault(_halfred);
 
 (0, _es6Promise.polyfill)();
 
-var API_PROXY = 'https://apiproxy.prestaging.teleport.ee';
+var API_URL = 'https://api.teleport.org/api';
+
+/**
+ * String.prototype.startsWith polyfill
+ */
+if (!String.prototype.startsWith) {
+  String.prototype.startsWith = function (searchString, position) {
+    position = position || 0;
+    return this.indexOf(searchString, position) === position;
+  };
+}
 
 /**
  * Cities API call
  */
 
 function getCities(query) {
-  return fetch(API_PROXY + '/api/cities/?search=' + query + '&embed=city:search-results/city:item/city:country&embed=city:search-results/city:item/city:admin1_division').then(function (res) {
+  return fetch(API_URL + '/cities/?search=' + query + '&embed=city:search-results/city:item/{city:country,city:admin1_division,city:timezone/tz:offsets-now}').then(function (res) {
     return res.json();
   }).then(function (json) {
     return _halfred2['default'].parse(json).embeddedArray('city:search-results');
@@ -38,6 +45,8 @@ function getCities(query) {
       var city = res.embedded('city:item');
       var admin1Division = city.embedded('city:admin1_division');
       var country = city.embedded('city:country');
+      var timezone = city.embedded('city:timezone');
+      var timezoneOffsets = timezone.embedded('tz:offsets-now');
 
       var name = city.name;
       var geoname_id = city.geoname_id;
@@ -45,24 +54,21 @@ function getCities(query) {
       var _city$location$latlon = city.location.latlon;
       var latitude = _city$location$latlon.latitude;
       var longitude = _city$location$latlon.longitude;
+      var title = res.matching_full_name;
 
-      var title = name + ', ' + admin1Division.name + ', ' + country.name;
+      var _ref = country || {};
 
-      // Append alternate name if exists and query is not the same with name
-      var _res$matching_alternate_names = res.matching_alternate_names;
-      _res$matching_alternate_names = _res$matching_alternate_names === undefined ? [{}] : _res$matching_alternate_names;
+      var countryName = _ref.name;
 
-      var _res$matching_alternate_names2 = _slicedToArray(_res$matching_alternate_names, 1);
+      var _ref2 = admin1Division || {};
 
-      var _res$matching_alternate_names2$0$name = _res$matching_alternate_names2[0].name;
-      var alternate = _res$matching_alternate_names2$0$name === undefined ? null : _res$matching_alternate_names2$0$name;
+      var admin1DivisionName = _ref2.name;
 
-      var queryMatchesName = query.toLowerCase().split(/[\,\s]+/).some(function (q) {
-        return q && name.toLowerCase().startsWith(q);
-      });
-      if (alternate && !queryMatchesName) title += ' (' + alternate + ')';
+      var _ref3 = timezoneOffsets || {};
 
-      return { title: title, name: name, geoname_id: geoname_id, latitude: latitude, longitude: longitude, population: population };
+      var tzOffsetMinutes = _ref3.total_offset_min;
+
+      return { title: title, name: name, geoname_id: geoname_id, latitude: latitude, longitude: longitude, population: population, admin1Division: admin1DivisionName, country: countryName, tzOffsetMinutes: tzOffsetMinutes };
     });
   });
 }
@@ -17366,7 +17372,7 @@ module.exports = {
           "p": [
             2,
             3,
-            32
+            33
           ],
           "t": 7,
           "e": "input",
@@ -17381,7 +17387,7 @@ module.exports = {
                 "p": [
                   3,
                   18,
-                  155
+                  157
                 ]
               }
             ],
@@ -17392,7 +17398,7 @@ module.exports = {
                 "p": [
                   3,
                   42,
-                  179
+                  181
                 ]
               }
             ]
@@ -17408,7 +17414,7 @@ module.exports = {
                   "p": [
                     2,
                     69,
-                    98
+                    99
                   ]
                 },
                 "\""
@@ -17418,7 +17424,7 @@ module.exports = {
               "p": [
                 2,
                 43,
-                72
+                73
               ]
             }
           ],
@@ -17440,7 +17446,7 @@ module.exports = {
               "p": [
                 6,
                 5,
-                240
+                245
               ],
               "t": 7,
               "e": "div",
@@ -17452,7 +17458,7 @@ module.exports = {
                   "p": [
                     6,
                     25,
-                    260
+                    265
                   ],
                   "t": 7,
                   "e": "div"
@@ -17465,7 +17471,7 @@ module.exports = {
           "p": [
             5,
             3,
-            220
+            224
           ]
         },
         " ",
@@ -17473,7 +17479,7 @@ module.exports = {
           "p": [
             9,
             3,
-            291
+            299
           ],
           "t": 7,
           "e": "ul",
@@ -17488,7 +17494,7 @@ module.exports = {
                   "p": [
                     11,
                     7,
-                    338
+                    348
                   ],
                   "t": 7,
                   "e": "li",
@@ -17511,7 +17517,7 @@ module.exports = {
                         "p": [
                           11,
                           30,
-                          361
+                          371
                         ]
                       }
                     ]
@@ -17541,7 +17547,7 @@ module.exports = {
                       "p": [
                         12,
                         9,
-                        433
+                        444
                       ]
                     }
                   ]
@@ -17552,7 +17558,7 @@ module.exports = {
               "p": [
                 10,
                 5,
-                320
+                329
               ]
             },
             {
@@ -17575,7 +17581,7 @@ module.exports = {
                       "p": [
                         15,
                         7,
-                        529
+                        543
                       ],
                       "t": 7,
                       "e": "li",
@@ -17597,7 +17603,7 @@ module.exports = {
                           "p": [
                             15,
                             37,
-                            559
+                            573
                           ]
                         }
                       ]
