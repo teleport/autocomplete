@@ -35,10 +35,10 @@ const browserifyArgs = _assign({}, watchify.args, {
 const rebundle = (bundler) => {
   return bundler.bundle()
     .on('error', $.util.log)
-    .pipe(source('teleport-autocomplete.bundled.js'))
+    .pipe(source('teleport-autocomplete.js'))
     .pipe(buffer())
-    .pipe($.sourcemaps.init({ loadMaps: true }))
-    .pipe($.sourcemaps.write('./'))
+    .pipe($.sourcemaps.init({ loadMaps: true, debug: true }))
+    .pipe($.sourcemaps.write('./', { sourceRoot: '..' }))
     .pipe($.if('*.js', $.header(BANNER)))
     .pipe(gulp.dest('dist'))
     .pipe(bs.reload({ stream: true }));
@@ -81,7 +81,7 @@ gulp.task('sass', () => {
     .pipe($.rename({
       prefix: 'teleport-',
     }))
-    .pipe($.sourcemaps.write('.'))
+    .pipe($.sourcemaps.write('.', { sourceRoot: '../scss' }))
     .pipe($.if('*.css', $.header(BANNER)))
     .pipe(gulp.dest('dist'))
     .pipe($.if('*.css', bs.reload({ stream: true })));
@@ -92,13 +92,13 @@ gulp.task('sass', () => {
  * Concat and minify JS
  */
 gulp.task('dist:js', ['browserify'], () => {
-  return gulp.src('dist/teleport-autocomplete.bundled.js')
+  return gulp.src('dist/teleport-autocomplete.js')
     .pipe($.sourcemaps.init({ loadMaps: true }))
     .pipe($.uglify())
     .pipe($.rename({
       extname: '.min.js',
     }))
-    .pipe($.sourcemaps.write('.'))
+    .pipe($.sourcemaps.write('.', { sourceRoot: '..' }))
     .pipe(gulp.dest('dist'));
 });
 
@@ -113,7 +113,7 @@ gulp.task('dist:css', ['sass'], () => {
     .pipe($.rename({
       extname: '.min.css',
     }))
-    .pipe($.sourcemaps.write('.'))
+    .pipe($.sourcemaps.write('.', { sourceRoot: 'scss' }))
     .pipe(gulp.dest('dist'));
 });
 
@@ -129,7 +129,7 @@ gulp.task('release', ['dist:js', 'dist:css'], () => {
 /**
  * Clean up generated folder
  */
-gulp.task('clean', (cb) => del(['dist'], cb));
+gulp.task('clean', () => del('dist'));
 
 
 /**
@@ -157,6 +157,6 @@ gulp.task('serve', () => {
 
 /**
  * By default:
- * Compile SASS, ES6, Ractive templates once, run devserver and watch files
+ * Compile SASS, ES6, run devserver and watch files
  */
 gulp.task('default', ['watch', 'watchify', 'sass', 'serve']);

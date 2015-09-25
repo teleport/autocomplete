@@ -1,47 +1,7 @@
 /*! teleport-autocomplete - v0.1.0 | https://github.com/teleport/autocomplete#readme | MIT */
-@-webkit-keyframes ball-scale-ripple {
-  0% {
-    -webkit-transform: scale(0.1);
-            transform: scale(0.1);
-    opacity: 1; }
-  70% {
-    -webkit-transform: scale(1);
-            transform: scale(1);
-    opacity: .7; }
-  100% {
-    opacity: 0; } }
-
-@keyframes ball-scale-ripple {
-  0% {
-    -webkit-transform: scale(0.1);
-            transform: scale(0.1);
-    opacity: 1; }
-  70% {
-    -webkit-transform: scale(1);
-            transform: scale(1);
-    opacity: .7; }
-  100% {
-    opacity: 0; } }
-
-.loader > div {
-  width: 5em;
-  height: 5em;
-  -webkit-animation: ball-scale-ripple 1s 0s infinite cubic-bezier(0.21, 0.53, 0.56, 0.8);
-          animation: ball-scale-ripple 1s 0s infinite cubic-bezier(0.21, 0.53, 0.56, 0.8);
-  border: solid 2px #4A4A4A;
-  border-radius: 100%;
-  -webkit-animation-fill-mode: both;
-          animation-fill-mode: both; }
-
 .tp-autocomplete {
-  position: relative; }
-  .tp-autocomplete .loader {
-    position: absolute;
-    top: 0.75em;
-    right: 0.625em; }
-    .tp-autocomplete .loader div {
-      width: 0.9375em;
-      height: 0.9375em; }
+  position: relative;
+  max-width: 25em; }
 
 .tp-ac__input {
   width: 100%;
@@ -52,7 +12,8 @@
   box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.35);
   font-size: 1.25em;
   font-weight: bold;
-  -webkit-appearance: none; }
+  -webkit-appearance: none;
+  text-overflow: ellipsis; }
   .tp-ac__input::-webkit-input-placeholder {
     color: #ccc;
     -webkit-font-smoothing: antialiased; }
@@ -70,6 +31,8 @@
     outline: none; }
   .tp-ac__input::-ms-clear {
     display: none; }
+  .spinner .tp-ac__input {
+    padding-right: 1.5em; }
 
 .tp-ac__list {
   position: absolute;
@@ -96,11 +59,38 @@
   text-overflow: ellipsis; }
   .tp-ac__item:hover, .tp-ac__item.is-active {
     background-color: #ddd; }
-  .tp-ac__item.tp-ac__no-results, .tp-ac__item.tp-ac__no-results:hover {
+  .tp-ac__item.no-results, .tp-ac__item.no-results:hover {
     cursor: default;
     background-color: white; }
   .tp-ac__item span {
     color: #4a4a4a;
     font-weight: bold; }
+
+/**
+ * Loading spinner
+ */
+@-webkit-keyframes spinner {
+  to {
+    -webkit-transform: rotate(360deg);
+            transform: rotate(360deg); } }
+@keyframes spinner {
+  to {
+    -webkit-transform: rotate(360deg);
+            transform: rotate(360deg); } }
+
+.spinner:before {
+  position: absolute;
+  top: 50%;
+  right: 0.5em;
+  width: 1em;
+  height: 1em;
+  margin-top: -0.625em;
+  margin-left: -0.625em;
+  content: '';
+  -webkit-animation: spinner 1s linear infinite;
+          animation: spinner 1s linear infinite;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  border-top-color: rgba(0, 0, 0, 0.6);
+  border-radius: 50%; }
 
 /*# sourceMappingURL=teleport-autocomplete.css.map */

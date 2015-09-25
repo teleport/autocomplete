@@ -1,19 +1,13 @@
-@import 'helpers';
-@import 'loader';
+// EM Helper
+@function em($target-px, $context: 16px) {
+  $target-px: $target-px / ($target-px * 0 + 1);
+  $context: $context / ($context * 0 + 1);
+  @return ($target-px / $context) * 1em;
+}
 
 .tp-autocomplete {
   position: relative;
-
-  .loader {
-    position: absolute;
-    top: em(12px);
-    right: em(10px);
-
-    div {
-      width: em(15px);
-      height: em(15px);
-    }
-  }
+  max-width: em(400px);
 }
 
 .tp-ac__input {
@@ -30,6 +24,8 @@
 
   -webkit-appearance: none;
 
+  text-overflow: ellipsis;
+
   &::placeholder {
     color: #ccc;
 
@@ -39,11 +35,14 @@
   &:focus {
     border-bottom: solid 1px #666;
     outline: none;
-
   }
 
   &::-ms-clear {
     display: none;
+  }
+
+  .spinner & {
+    padding-right: em(30px, 20px);
   }
 }
 
@@ -79,7 +78,7 @@
     background-color: #ddd;
   }
 
-  &.tp-ac__no-results, &.tp-ac__no-results:hover {
+  &.no-results, &.no-results:hover {
     cursor: default;
 
     background-color: white;
@@ -90,4 +89,30 @@
 
     font-weight: bold;
   }
+}
+
+
+/**
+ * Loading spinner
+ */
+@keyframes spinner {
+  to { transform: rotate(360deg); }
+}
+
+.spinner:before {
+  position: absolute;
+  top: 50%;
+  right: em(8px);
+
+  width: em(16px);
+  height: em(16px);
+  margin-top: em(-10px, 16px);
+  margin-left: em(-10px, 16px);
+
+  content: '';
+  animation: spinner 1s linear infinite;
+
+  border: 2px solid rgba(0, 0, 0, .3);
+  border-top-color: rgba(0, 0, 0, .6);
+  border-radius: 50%;
 }
