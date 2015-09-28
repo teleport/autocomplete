@@ -3,10 +3,12 @@
 import gulp from 'gulp';
 import gulpLoadPlugins from 'gulp-load-plugins';
 import del from 'del';
-import _assign from 'lodash/object/assign';
+import assign from 'core-js/library/fn/object/assign';
 import source from 'vinyl-source-stream';
 import buffer from 'vinyl-buffer';
 import { spawn } from 'child_process';
+import es from 'event-stream';
+
 
 import browserify from 'browserify';
 import watchify from 'watchify';
@@ -26,18 +28,21 @@ const BANNER = `/*! ${pkg.name} - v${pkg.version} | ${pkg.homepage} | ${pkg.lice
 // ----------------------------- BROWSERIFY ------------------------------------
 
 // Browserify params
-const browserifyArgs = _assign({}, watchify.args, {
-  entries: 'js/autocomplete.js',
+const browserifyArgs = assign({}, watchify.args, {
   standalone: 'TeleportAutocomplete',
   debug: true,
 });
 
 // Browserify bundle command
-const rebundle = (bundler) => {
+const rebundle = (bundler, entry) => {
   return bundler.bundle()
     .on('error', gp.util.log)
-    .pipe(source('teleport-autocomplete.js'))
+    .pipe(source(entry))
     .pipe(buffer())
+    .pipe(gp.rename({
+      dirname: '',
+      prefix: 'teleport-',
+    }))
     .pipe(gp.sourcemaps.init({ loadMaps: true, debug: true }))
     .pipe(gp.sourcemaps.write('./', { sourceRoot: '..' }))
     .pipe(gp.if('*.js', gp.header(BANNER)))
@@ -50,19 +55,29 @@ const rebundle = (bundler) => {
  * Browserify + Babel with watchify
  */
 gulp.task('watchify', () => {
-  const bundler = watchify(browserify(browserifyArgs));
+  const tasks = ['js/autocomplete.js', 'js/autocomplete-ractive.js'].map(entry => {
+    const bundler = watchify(browserify(assign(browserifyArgs, { entries: [entry] })));
 
-  bundler.on('update', rebundle.bind(this, bundler));
-  bundler.on('log', gp.util.log);
+    bundler.on('update', rebundle.bind(this, bundler, entry));
+    bundler.on('log', gp.util.log);
 
-  return rebundle(bundler);
+    return rebundle(bundler, entry);
+  });
+
+  return es.merge.apply(null, tasks);
 });
 
 
 /**
  * Plain browserify
  */
-gulp.task('browserify', () => rebundle(browserify(browserifyArgs)));
+gulp.task('browserify', () => {
+  const tasks = ['js/autocomplete.js', 'js/autocomplete-ractive.js'].map(entry => {
+    return rebundle(browserify(assign(browserifyArgs, { entries: [entry] })), entry);
+  });
+
+  return es.merge.apply(null, tasks);
+});
 
 // -----------------------------------------------------------------------------
 

@@ -52,13 +52,12 @@
 
   width: 100%;
   margin: 0;
-  margin-top: 0px;
   padding-left: 0;
 
   list-style-type: none;
 
   color: #979797;
-  background-color: white;
+  background-color: #fff;
   box-shadow: 2px 2px 4px rgba(0, 0, 0, .35);
 
   font-size: em(14px);
@@ -74,14 +73,16 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 
-  &:hover, &.is-active {
+  &:hover,
+  &.is-active {
     background-color: #ddd;
   }
 
-  &.no-results, &.no-results:hover {
+  &.no-results,
+  &.no-results:hover {
     cursor: default;
 
-    background-color: white;
+    background-color: #fff;
   }
 
   span {
@@ -92,9 +93,7 @@
 }
 
 
-/**
- * Loading spinner
- */
+// Loading spinner
 @keyframes spinner {
   to { transform: rotate(360deg); }
 }

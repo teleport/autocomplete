@@ -25,6 +25,8 @@
     "minivents": "^2.0.0"
   },
   "devDependencies": {
+    "ractive-browserify": "^0.7.1",
+    "event-stream": "^3.3.1",
     "babel": "^5.8.23",
     "babel-eslint": "^4.1.1",
     "babelify": "^6.3.0",
@@ -50,7 +52,16 @@
     "watchify": "^3.4.0"
   },
   "browserify": {
-    "transform": ["babelify"]
+    "transform": [
+      "babelify",
+      [
+        "ractive-browserify",
+        {
+          "extension": "rac",
+          "justTemplate": true
+        }
+      ]
+    ]
   },
   "eslintConfig": {
     "extends": "airbnb/base",

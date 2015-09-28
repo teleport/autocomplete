@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <title>Teleport Autocomplete Ractive Component Example</title>
+    <link rel="prefetch stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700,800,600">
+    <link rel="stylesheet" href="/dist/teleport-autocomplete.css">
+
+    <style>
+      * { box-sizing: border-box; }
+      html { font-size: 16px; }
+
+      html, body, #container {
+        width: 100%;
+        height: 100%;
+      }
+
+      body {
+        font-family: 'Open Sans', sans-serif;
+        color: #4a4a4a;
+        margin: 0;
+        padding: 1em;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="container">
+
+    </div>
+
+    <script id="simpleTemplate" type="text/ractive">
+      <h1>City Autocomplete Ractive Example</h1>
+      <tp-autocomplete query="{{query}}" class="my-input"
+        value="{{value}}" placeholder="Pick city"></tp-autocomplete>
+
+      <h3>Current Result:</h3>
+      <pre>{{JSON.stringify(value, null, 2)}}</pre>
+    </script>
+
+    <script src="http://cdn.ractivejs.org/latest/ractive.js"></script>
+    <script src="/dist/teleport-autocomplete-ractive.js"></script>
+    <script>
+      window.view = new Ractive({
+        el: '#container',
+        template: '#simpleTemplate',
+
+        components: {
+          'tp-autocomplete': TeleportAutocomplete,
+        },
+
+        data: {
+          query: 'Tallinn',
+          value: null,
+        },
+      });
+    </script>
+  </body>
+</html>

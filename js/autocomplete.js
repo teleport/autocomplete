@@ -31,8 +31,11 @@ HTMLElement.prototype.off = HTMLElement.prototype.removeEventListener;
 class TeleportAutocomplete {
   get query() { return this._query; }
   set query(query) {
+    if (query === this._query) return query;
+
     this._query = query;
     this.el.value = query;
+    this.emit('querychange', query);
   }
 
   get activeIndex() { return this._activeIndex; }
@@ -73,7 +76,12 @@ class TeleportAutocomplete {
     });
 
     // Prefetch results
-    if (this.query) this.fetchResults(() => this.value = this.getResultByTitle(this.query));
+    if (this.query) {
+      this.fetchResults(() => {
+        this.value = this.getResultByTitle(this.query);
+        this.emit('change', this.value);
+      });
+    }
 
     this.getCities = debounce(this.getCities, 250);
     return this;
