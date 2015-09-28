@@ -9,14 +9,11 @@ import escapeRegexp from 'core-js/library/fn/regexp/escape';
 import debounce from 'debounce';
 
 const Key = { BACK: 8, TAB: 9, ENTER: 13, UP: 38, DOWN: 40 };
-const API_URL = 'https://api.teleport.org/api';
 const CONTAINER_TEMPLATE = '<div class="tp-autocomplete"><ul class="tp-ac__list"></ul></div>';
 const INPUT_CLASS = 'tp-ac__input';
-const ACTIVE_CLASS = 'is-active';
-const LOADING_CLASS = 'spinner';
 const itemWrapperTemplate = item => `<li class="tp-ac__item">${item}</li>`;
 const NO_RESULTS_TEMPLATE = '<li class="tp-ac__item no-results">No matches</li>';
-
+const GEOLOCATE_TEMPLATE = '<li class="tp-ac__item geolocate">Detect my current location</li>';
 
 // Default item template, wraps title matches
 const ITEM_TEMPLATE = function renderItem(item) {
@@ -24,8 +21,8 @@ const ITEM_TEMPLATE = function renderItem(item) {
 };
 
 // Shorthands
-EventTarget.prototype.on = EventTarget.prototype.addEventListener;
-EventTarget.prototype.off = EventTarget.prototype.removeEventListener;
+HTMLElement.prototype.on = HTMLElement.prototype.addEventListener;
+HTMLElement.prototype.off = HTMLElement.prototype.removeEventListener;
 
 
 /**
@@ -33,22 +30,27 @@ EventTarget.prototype.off = EventTarget.prototype.removeEventListener;
  */
 class TeleportAutocomplete {
   get query() { return this._query; }
-  set query(q) {
-    this._query = q;
-    this.el.value = q;
+  set query(query) {
+    this._query = query;
+    this.el.value = query;
   }
 
   get activeIndex() { return this._activeIndex; }
-  set activeIndex(i) {
+  set activeIndex(index) {
     // Remove old highlight
     const oldNode = this.list.childNodes[this._activeIndex];
-    if (oldNode) oldNode.classList.remove(ACTIVE_CLASS);
+    if (oldNode) oldNode.classList.remove('is-active');
 
-    this._activeIndex = i;
+    this._activeIndex = index;
 
     // Set highlight
-    const activeNode = this.list.childNodes[i];
-    if (activeNode) activeNode.classList.add(ACTIVE_CLASS);
+    const activeNode = this.list.childNodes[index];
+    if (activeNode) activeNode.classList.add('is-active');
+  }
+
+  // Show or hide loading
+  set loading(toggle) {
+    this.container.classList.toggle('spinner', toggle);
   }
 
 
@@ -57,25 +59,32 @@ class TeleportAutocomplete {
    */
   constructor({
     el = null, maxItems = 10, itemTemplate = ITEM_TEMPLATE,
+    geoLocate = true, apiRoot = 'https://api.teleport.org/api',
     embeds = 'city:country,city:admin1_division,city:timezone/tz:offsets-now,city:urban_area',
-  } = options || {}) {
+  } = {}) {
     events(this);
 
-    this.setupInput(el);
+    const elem = (typeof el === 'string') ? document.querySelector(el) : el;
+    this.setupInput(elem);
 
-    this.maxItems = maxItems;
-    this.itemTemplate = itemTemplate;
-    this.embeds = embeds;
-
-    this._activeIndex = 0;
-    this._cache = {};
-    this._query = this.el.value;
-    this.value = null;
+    assign(this, {
+      maxItems, geoLocate, apiRoot, itemTemplate, embeds, results: [],
+      _activeIndex: 0, _cache: {}, _query: this.el.value, value: null,
+    });
 
     // Prefetch results
-    this.fetchResults(() => this.value = this.getResultByTitle(this.query));
+    if (this.query) this.fetchResults(() => this.value = this.getResultByTitle(this.query));
 
     this.getCities = debounce(this.getCities, 250);
+    return this;
+  }
+
+  /**
+   * Init shorthand
+   */
+  static init(el, options = {}) {
+    const opt = (typeof el === 'string' || el instanceof HTMLInputElement) ? assign(options, { el }) : el;
+    return new TeleportAutocomplete(opt);
   }
 
 
@@ -125,8 +134,8 @@ class TeleportAutocomplete {
    */
 
   // Clicked on list item, select item
-  onlistclick(e) {
-    const index = [].indexOf.call(this.list.children, e.target);
+  onlistclick(event) {
+    const index = [].indexOf.call(this.list.children, event.target);
     this.selectByIndex(index);
   }
 
@@ -141,27 +150,29 @@ class TeleportAutocomplete {
 
   // Input was typed into
   oninput() {
-    this.query = this.el.value;
+    this._query = this.el.value;
     this.fetchResults(() => this.renderList());
   }
 
   // Called on keypresses
-  onkeydown(e) {
-    const code = e.keyCode;
+  onkeydown(event) {
+    const code = event.keyCode;
 
     // Prevent cursor move
-    if ([Key.UP, Key.DOWN].indexOf(code) !== -1) e.preventDefault();
+    if ([Key.UP, Key.DOWN].indexOf(code) !== -1) event.preventDefault();
 
     switch (code) {
     case Key.BACK:
       // Clear filled value or last char
-      if (this.value || this.query.length === 1) this.selectByIndex(-1);
+      if (this.value || this.query.length === 1) {
+        this.results = [];
+        this.selectByIndex(0);
+      }
       break;
     case Key.ENTER:
       // Prevent submit if query is to be selected
-      if (!this.value && this.query) e.preventDefault();
+      if (!this.value && this.query) event.preventDefault();
       this.selectByIndex(this.activeIndex);
-      this.emit('picked', this.value);
       break;
     case Key.TAB: this.selectByIndex(this.activeIndex);
       break;
@@ -178,9 +189,14 @@ class TeleportAutocomplete {
    * Select option from list by index
    */
   selectByIndex(index) {
-    if (index === -1) this.results = [];
+    const firstItem = this.list.firstChild;
+    if (firstItem && firstItem.classList.contains('geolocate') && index === 0) this.currentLocation();
     this.activeIndex = index;
+
+    const oldValue = this.value;
     this.value = this.results[index] || null;
+    if (oldValue !== this.value) this.emit('change', this.value);
+
     this.list.innerHTML = '';
     this.query = this.value ? this.value.title : '';
   }
@@ -192,9 +208,11 @@ class TeleportAutocomplete {
   wrapMatches(str = '') {
     let res = str;
 
-    this.query.split(/[\,\s]+/).forEach(q => {
-      if (q) res = res.replace(new RegExp(escapeRegexp(q), 'gi'), '<span>$&</span>');
-    });
+    this.query
+      .split(/[\,\s]+/)
+      .filter(qr => !!qr)
+      .forEach(query =>
+        res = res.replace(new RegExp(escapeRegexp(query), 'gi'), '<span>$&</span>'));
 
     return res;
   }
@@ -204,10 +222,12 @@ class TeleportAutocomplete {
    * Render result list
    */
   renderList() {
-    let results = this.results.map(r =>
-      itemWrapperTemplate(this.itemTemplate(r))).join('');
+    let results = this.results.map(res =>
+      itemWrapperTemplate(this.itemTemplate(res)))
+      .slice(0, this.maxItems).join('');
 
     if (!results && this.query !== '') results = NO_RESULTS_TEMPLATE;
+    if (this.query === '' && this.geoLocate) results = GEOLOCATE_TEMPLATE;
     this.list.innerHTML = results;
 
     this.activeIndex = 0;
@@ -219,7 +239,7 @@ class TeleportAutocomplete {
    */
   getResultByTitle(title) {
     if (!this.results || !title) return null;
-    return find(this.results, r => r.title.indexOf(title) !== -1);
+    return find(this.results, res => res.title.indexOf(title) !== -1);
   }
 
 
@@ -239,10 +259,48 @@ class TeleportAutocomplete {
     this.req = this.getCities(results => {
       this.results = this._cache[this.query] = results;
       cb();
-      this.container.classList.remove(LOADING_CLASS);
+      this.loading = false;
     });
 
-    this.container.classList.add(LOADING_CLASS);
+    this.loading = true;
+  }
+
+
+  /**
+   * Geolocate current city
+   */
+  currentLocation() {
+    const req = new XMLHttpRequest();
+    const embed = `location:nearest-cities/location:nearest-city/{${this.embeds}}`;
+
+    this.loading = true;
+    this.oldPlaceholder = this.el.placeholder;
+    this.el.placeholder = 'Detecting location...';
+
+    navigator.geolocation.getCurrentPosition(({ coords }) => {
+      req.open('GET', `${this.apiRoot}/locations/${coords.latitude},${coords.longitude}/?embed=${embed}`);
+      req.addEventListener('load', () => this.parseLocation(JSON.parse(req.response)));
+      req.send();
+    }, ({ message }) => {
+      this.loading = false;
+      this.el.placeholder = message;
+      setTimeout(() => this.el.placeholder = this.oldPlaceholder, 3000);
+    }, { timeout: 5000 });
+  }
+
+
+  /**
+   * Parse current location API response
+   */
+  parseLocation(json) {
+    const res = halfred.parse(json);
+    const nearest = res.embeddedArray('location:nearest-cities')[0];
+    if (nearest) {
+      this.results = [this.parseCity(nearest)];
+      this.selectByIndex(0);
+    }
+    this.loading = false;
+    this.el.placeholder = this.oldPlaceholder;
   }
 
 
@@ -254,8 +312,14 @@ class TeleportAutocomplete {
     const embed = `city:search-results/city:item/{${this.embeds}}`;
 
     const req = new XMLHttpRequest();
-    req.open('GET', `${API_URL}/cities/?search=${this.query}&embed=${embed}`);
-    req.on('load', () => cb(this.parseCities(JSON.parse(req.response))));
+    req.open('GET', `${this.apiRoot}/cities/?search=${this.query}&embed=${embed}`);
+    req.addEventListener('load', () => {
+      const results = halfred.parse(JSON.parse(req.response))
+        .embeddedArray('city:search-results')
+        .map(res => this.parseCity(res));
+
+      cb(results);
+    });
     req.send();
 
     return req;
@@ -263,40 +327,36 @@ class TeleportAutocomplete {
 
 
   /**
-   * Parse API response
+   * Parse city
    */
-  parseCities(json) {
-    const results = halfred.parse(json).embeddedArray('city:search-results');
+  parseCity(res) {
+    const city = res.embedded('location:nearest-city') || res.embedded('city:item');
+    city.country = city.embedded('city:country');
+    city.admin1_division = city.embedded('city:admin1_division');
+    city.timezone = city.embedded('city:timezone');
+    city.urban_area = city.embedded('city:urban_area');
 
-    return results.map(res => {
-      const city = res.embedded('city:item');
-      city.country = city.embedded('city:country');
-      city.admin1_division = city.embedded('city:admin1_division');
-      city.timezone = city.embedded('city:timezone');
-      city.urban_area = city.embedded('city:urban_area');
+    const { name, geoname_id: geonameId, population,
+      location: { latlon: { latitude, longitude } } } = city;
 
-      const { matching_full_name: title } = res;
+    const { matching_full_name: title = name } = res;
 
-      const { name, geoname_id: geonameId, population,
-        location: { latlon: { latitude, longitude } } } = city;
+    const result = { title, name, geonameId, latitude, longitude, population };
 
-      const result = { title, name, geonameId, latitude, longitude, population };
+    if (city.country) assign(result, { country: city.country.name });
+    if (city.admin1_division) assign(result, { admin1Division: city.admin1_division.name });
 
-      if (city.country) assign(result, { country: city.country.name });
-      if (city.admin1_division) assign(result, { admin1Division: city.admin1_division.name });
+    if (city.timezone) {
+      const tzNow = city.timezone.embedded('tz:offsets-now');
+      assign(result, { tzOffsetMinutes: tzNow.total_offset_min });
+    }
 
-      if (city.timezone) {
-        const tzNow = city.timezone.embedded('tz:offsets-now');
-        assign(result, { tzOffsetMinutes: tzNow.total_offset_min });
-      }
+    if (city.urban_area) {
+      const { name: uaName, ua_id: uaId, teleport_city_url: uaCityUrl } = city.urban_area;
+      assign(result, { uaName, uaId, uaCityUrl });
+    }
 
-      if (city.urban_area) {
-        const { name: uaName, ua_id: uaId, teleport_city_url: uaCityUrl } = city.urban_area;
-        assign(result, { uaName, uaId, uaCityUrl });
-      }
-
-      return result;
-    });
+    return result;
   }
 }
 

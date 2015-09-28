@@ -6,6 +6,7 @@ import del from 'del';
 import _assign from 'lodash/object/assign';
 import source from 'vinyl-source-stream';
 import buffer from 'vinyl-buffer';
+import { spawn } from 'child_process';
 
 import browserify from 'browserify';
 import watchify from 'watchify';
@@ -13,7 +14,7 @@ import watchify from 'watchify';
 import browserSync from 'browser-sync';
 
 const bs = browserSync.create();
-const $ = gulpLoadPlugins();
+const gp = gulpLoadPlugins();
 
 
 import pkg from './package.json';
@@ -34,12 +35,12 @@ const browserifyArgs = _assign({}, watchify.args, {
 // Browserify bundle command
 const rebundle = (bundler) => {
   return bundler.bundle()
-    .on('error', $.util.log)
+    .on('error', gp.util.log)
     .pipe(source('teleport-autocomplete.js'))
     .pipe(buffer())
-    .pipe($.sourcemaps.init({ loadMaps: true, debug: true }))
-    .pipe($.sourcemaps.write('./', { sourceRoot: '..' }))
-    .pipe($.if('*.js', $.header(BANNER)))
+    .pipe(gp.sourcemaps.init({ loadMaps: true, debug: true }))
+    .pipe(gp.sourcemaps.write('./', { sourceRoot: '..' }))
+    .pipe(gp.if('*.js', gp.header(BANNER)))
     .pipe(gulp.dest('dist'))
     .pipe(bs.reload({ stream: true }));
 };
@@ -52,7 +53,7 @@ gulp.task('watchify', () => {
   const bundler = watchify(browserify(browserifyArgs));
 
   bundler.on('update', rebundle.bind(this, bundler));
-  bundler.on('log', $.util.log);
+  bundler.on('log', gp.util.log);
 
   return rebundle(bundler);
 });
@@ -71,20 +72,20 @@ gulp.task('browserify', () => rebundle(browserify(browserifyArgs)));
  */
 gulp.task('sass', () => {
   return gulp.src('scss/autocomplete.scss')
-    .pipe($.sourcemaps.init())
+    .pipe(gp.sourcemaps.init())
 
-    .pipe($.sass().on('error', $.sass.logError))
+    .pipe(gp.sass().on('error', gp.sass.logError))
 
     // Prefix CSS
-    .pipe($.autoprefixer())
+    .pipe(gp.autoprefixer())
 
-    .pipe($.rename({
+    .pipe(gp.rename({
       prefix: 'teleport-',
     }))
-    .pipe($.sourcemaps.write('.', { sourceRoot: '../scss' }))
-    .pipe($.if('*.css', $.header(BANNER)))
+    .pipe(gp.sourcemaps.write('.', { sourceRoot: '../scss' }))
+    .pipe(gp.if('*.css', gp.header(BANNER)))
     .pipe(gulp.dest('dist'))
-    .pipe($.if('*.css', bs.reload({ stream: true })));
+    .pipe(gp.if('*.css', bs.reload({ stream: true })));
 });
 
 
@@ -93,12 +94,12 @@ gulp.task('sass', () => {
  */
 gulp.task('dist:js', ['browserify'], () => {
   return gulp.src('dist/teleport-autocomplete.js')
-    .pipe($.sourcemaps.init({ loadMaps: true }))
-    .pipe($.uglify())
-    .pipe($.rename({
+    .pipe(gp.sourcemaps.init({ loadMaps: true }))
+    .pipe(gp.uglify())
+    .pipe(gp.rename({
       extname: '.min.js',
     }))
-    .pipe($.sourcemaps.write('.', { sourceRoot: '..' }))
+    .pipe(gp.sourcemaps.write('.', { sourceRoot: '..' }))
     .pipe(gulp.dest('dist'));
 });
 
@@ -108,12 +109,12 @@ gulp.task('dist:js', ['browserify'], () => {
  */
 gulp.task('dist:css', ['sass'], () => {
   return gulp.src('dist/teleport-autocomplete.css')
-    .pipe($.sourcemaps.init({ loadMaps: true, debug: true }))
-    .pipe($.minifyCss({ sourceMap: false }))
-    .pipe($.rename({
+    .pipe(gp.sourcemaps.init({ loadMaps: true, debug: true }))
+    .pipe(gp.minifyCss({ sourceMap: false }))
+    .pipe(gp.rename({
       extname: '.min.css',
     }))
-    .pipe($.sourcemaps.write('.', { sourceRoot: 'scss' }))
+    .pipe(gp.sourcemaps.write('.', { sourceRoot: 'scss' }))
     .pipe(gulp.dest('dist'));
 });
 
@@ -121,8 +122,8 @@ gulp.task('dist:css', ['sass'], () => {
 /**
  * Release package
  */
-gulp.task('release', ['dist:js', 'dist:css'], () => {
-
+gulp.task('release', ['dist:js', 'dist:css'], (done) => {
+  spawn('npm', ['publish'], { stdio: 'inherit' }).on('close', done);
 });
 
 

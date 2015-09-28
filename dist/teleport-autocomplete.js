@@ -1,4 +1,4 @@
-/*! teleport-autocomplete - v0.1.0 | https://github.com/teleport/autocomplete#readme | MIT */
+/*! teleport-autocomplete - v0.2.0 | https://github.com/teleport/autocomplete#readme | MIT */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.TeleportAutocomplete = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
@@ -39,15 +39,13 @@ var _debounce = require('debounce');
 var _debounce2 = _interopRequireDefault(_debounce);
 
 var Key = { BACK: 8, TAB: 9, ENTER: 13, UP: 38, DOWN: 40 };
-var API_URL = 'https://api.teleport.org/api';
 var CONTAINER_TEMPLATE = '<div class="tp-autocomplete"><ul class="tp-ac__list"></ul></div>';
 var INPUT_CLASS = 'tp-ac__input';
-var ACTIVE_CLASS = 'is-active';
-var LOADING_CLASS = 'spinner';
 var itemWrapperTemplate = function itemWrapperTemplate(item) {
   return '<li class="tp-ac__item">' + item + '</li>';
 };
 var NO_RESULTS_TEMPLATE = '<li class="tp-ac__item no-results">No matches</li>';
+var GEOLOCATE_TEMPLATE = '<li class="tp-ac__item geolocate">Detect my current location</li>';
 
 // Default item template, wraps title matches
 var ITEM_TEMPLATE = function renderItem(item) {
@@ -55,8 +53,8 @@ var ITEM_TEMPLATE = function renderItem(item) {
 };
 
 // Shorthands
-EventTarget.prototype.on = EventTarget.prototype.addEventListener;
-EventTarget.prototype.off = EventTarget.prototype.removeEventListener;
+HTMLElement.prototype.on = HTMLElement.prototype.addEventListener;
+HTMLElement.prototype.off = HTMLElement.prototype.removeEventListener;
 
 /**
  * Teleport Cities Autocomplete
@@ -68,25 +66,32 @@ var TeleportAutocomplete = (function () {
     get: function get() {
       return this._query;
     },
-    set: function set(q) {
-      this._query = q;
-      this.el.value = q;
+    set: function set(query) {
+      this._query = query;
+      this.el.value = query;
     }
   }, {
     key: 'activeIndex',
     get: function get() {
       return this._activeIndex;
     },
-    set: function set(i) {
+    set: function set(index) {
       // Remove old highlight
       var oldNode = this.list.childNodes[this._activeIndex];
-      if (oldNode) oldNode.classList.remove(ACTIVE_CLASS);
+      if (oldNode) oldNode.classList.remove('is-active');
 
-      this._activeIndex = i;
+      this._activeIndex = index;
 
       // Set highlight
-      var activeNode = this.list.childNodes[i];
-      if (activeNode) activeNode.classList.add(ACTIVE_CLASS);
+      var activeNode = this.list.childNodes[index];
+      if (activeNode) activeNode.classList.add('is-active');
+    }
+
+    // Show or hide loading
+  }, {
+    key: 'loading',
+    set: function set(toggle) {
+      this.container.classList.toggle('spinner', toggle);
     }
 
     /**
@@ -97,7 +102,7 @@ var TeleportAutocomplete = (function () {
   function TeleportAutocomplete() {
     var _this = this;
 
-    var _ref = arguments.length <= 0 || arguments[0] === undefined ? options || {} : arguments[0];
+    var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
     var _ref$el = _ref.el;
     var el = _ref$el === undefined ? null : _ref$el;
@@ -105,6 +110,10 @@ var TeleportAutocomplete = (function () {
     var maxItems = _ref$maxItems === undefined ? 10 : _ref$maxItems;
     var _ref$itemTemplate = _ref.itemTemplate;
     var itemTemplate = _ref$itemTemplate === undefined ? ITEM_TEMPLATE : _ref$itemTemplate;
+    var _ref$geoLocate = _ref.geoLocate;
+    var geoLocate = _ref$geoLocate === undefined ? true : _ref$geoLocate;
+    var _ref$apiRoot = _ref.apiRoot;
+    var apiRoot = _ref$apiRoot === undefined ? 'https://api.teleport.org/api' : _ref$apiRoot;
     var _ref$embeds = _ref.embeds;
     var embeds = _ref$embeds === undefined ? 'city:country,city:admin1_division,city:timezone/tz:offsets-now,city:urban_area' : _ref$embeds;
 
@@ -112,31 +121,33 @@ var TeleportAutocomplete = (function () {
 
     (0, _minivents2['default'])(this);
 
-    this.setupInput(el);
+    var elem = typeof el === 'string' ? document.querySelector(el) : el;
+    this.setupInput(elem);
 
-    this.maxItems = maxItems;
-    this.itemTemplate = itemTemplate;
-    this.embeds = embeds;
-
-    this._activeIndex = 0;
-    this._cache = {};
-    this._query = this.el.value;
-    this.value = null;
+    (0, _coreJsLibraryFnObjectAssign2['default'])(this, {
+      maxItems: maxItems, geoLocate: geoLocate, apiRoot: apiRoot, itemTemplate: itemTemplate, embeds: embeds, results: [],
+      _activeIndex: 0, _cache: {}, _query: this.el.value, value: null
+    });
 
     // Prefetch results
-    this.fetchResults(function () {
+    if (this.query) this.fetchResults(function () {
       return _this.value = _this.getResultByTitle(_this.query);
     });
 
     this.getCities = (0, _debounce2['default'])(this.getCities, 250);
+    return this;
   }
 
   /**
-   * Clean up the container
+   * Init shorthand
    */
 
   _createClass(TeleportAutocomplete, [{
     key: 'destroy',
+
+    /**
+     * Clean up the container
+     */
     value: function destroy() {
       this.el.off('input', this.oninput);
       this.el.off('keydown', this.onkeydown);
@@ -183,8 +194,8 @@ var TeleportAutocomplete = (function () {
     // Clicked on list item, select item
   }, {
     key: 'onlistclick',
-    value: function onlistclick(e) {
-      var index = [].indexOf.call(this.list.children, e.target);
+    value: function onlistclick(event) {
+      var index = [].indexOf.call(this.list.children, event.target);
       this.selectByIndex(index);
     }
 
@@ -219,7 +230,7 @@ var TeleportAutocomplete = (function () {
     value: function oninput() {
       var _this3 = this;
 
-      this.query = this.el.value;
+      this._query = this.el.value;
       this.fetchResults(function () {
         return _this3.renderList();
       });
@@ -228,22 +239,24 @@ var TeleportAutocomplete = (function () {
     // Called on keypresses
   }, {
     key: 'onkeydown',
-    value: function onkeydown(e) {
-      var code = e.keyCode;
+    value: function onkeydown(event) {
+      var code = event.keyCode;
 
       // Prevent cursor move
-      if ([Key.UP, Key.DOWN].indexOf(code) !== -1) e.preventDefault();
+      if ([Key.UP, Key.DOWN].indexOf(code) !== -1) event.preventDefault();
 
       switch (code) {
         case Key.BACK:
           // Clear filled value or last char
-          if (this.value || this.query.length === 1) this.selectByIndex(-1);
+          if (this.value || this.query.length === 1) {
+            this.results = [];
+            this.selectByIndex(0);
+          }
           break;
         case Key.ENTER:
           // Prevent submit if query is to be selected
-          if (!this.value && this.query) e.preventDefault();
+          if (!this.value && this.query) event.preventDefault();
           this.selectByIndex(this.activeIndex);
-          this.emit('picked', this.value);
           break;
         case Key.TAB:
           this.selectByIndex(this.activeIndex);
@@ -265,9 +278,14 @@ var TeleportAutocomplete = (function () {
   }, {
     key: 'selectByIndex',
     value: function selectByIndex(index) {
-      if (index === -1) this.results = [];
+      var firstItem = this.list.firstChild;
+      if (firstItem && firstItem.classList.contains('geolocate') && index === 0) this.currentLocation();
       this.activeIndex = index;
+
+      var oldValue = this.value;
       this.value = this.results[index] || null;
+      if (oldValue !== this.value) this.emit('change', this.value);
+
       this.list.innerHTML = '';
       this.query = this.value ? this.value.title : '';
     }
@@ -282,8 +300,10 @@ var TeleportAutocomplete = (function () {
 
       var res = str;
 
-      this.query.split(/[\,\s]+/).forEach(function (q) {
-        if (q) res = res.replace(new RegExp((0, _coreJsLibraryFnRegexpEscape2['default'])(q), 'gi'), '<span>$&</span>');
+      this.query.split(/[\,\s]+/).filter(function (qr) {
+        return !!qr;
+      }).forEach(function (query) {
+        return res = res.replace(new RegExp((0, _coreJsLibraryFnRegexpEscape2['default'])(query), 'gi'), '<span>$&</span>');
       });
 
       return res;
@@ -297,11 +317,12 @@ var TeleportAutocomplete = (function () {
     value: function renderList() {
       var _this4 = this;
 
-      var results = this.results.map(function (r) {
-        return itemWrapperTemplate(_this4.itemTemplate(r));
-      }).join('');
+      var results = this.results.map(function (res) {
+        return itemWrapperTemplate(_this4.itemTemplate(res));
+      }).slice(0, this.maxItems).join('');
 
       if (!results && this.query !== '') results = NO_RESULTS_TEMPLATE;
+      if (this.query === '' && this.geoLocate) results = GEOLOCATE_TEMPLATE;
       this.list.innerHTML = results;
 
       this.activeIndex = 0;
@@ -314,8 +335,8 @@ var TeleportAutocomplete = (function () {
     key: 'getResultByTitle',
     value: function getResultByTitle(title) {
       if (!this.results || !title) return null;
-      return (0, _coreJsLibraryFnArrayFind2['default'])(this.results, function (r) {
-        return r.title.indexOf(title) !== -1;
+      return (0, _coreJsLibraryFnArrayFind2['default'])(this.results, function (res) {
+        return res.title.indexOf(title) !== -1;
       });
     }
 
@@ -341,10 +362,60 @@ var TeleportAutocomplete = (function () {
       this.req = this.getCities(function (results) {
         _this5.results = _this5._cache[_this5.query] = results;
         cb();
-        _this5.container.classList.remove(LOADING_CLASS);
+        _this5.loading = false;
       });
 
-      this.container.classList.add(LOADING_CLASS);
+      this.loading = true;
+    }
+
+    /**
+     * Geolocate current city
+     */
+  }, {
+    key: 'currentLocation',
+    value: function currentLocation() {
+      var _this6 = this;
+
+      var req = new XMLHttpRequest();
+      var embed = 'location:nearest-cities/location:nearest-city/{' + this.embeds + '}';
+
+      this.loading = true;
+      this.oldPlaceholder = this.el.placeholder;
+      this.el.placeholder = 'Detecting location...';
+
+      navigator.geolocation.getCurrentPosition(function (_ref2) {
+        var coords = _ref2.coords;
+
+        req.open('GET', _this6.apiRoot + '/locations/' + coords.latitude + ',' + coords.longitude + '/?embed=' + embed);
+        req.addEventListener('load', function () {
+          return _this6.parseLocation(JSON.parse(req.response));
+        });
+        req.send();
+      }, function (_ref3) {
+        var message = _ref3.message;
+
+        _this6.loading = false;
+        _this6.el.placeholder = message;
+        setTimeout(function () {
+          return _this6.el.placeholder = _this6.oldPlaceholder;
+        }, 3000);
+      }, { timeout: 5000 });
+    }
+
+    /**
+     * Parse current location API response
+     */
+  }, {
+    key: 'parseLocation',
+    value: function parseLocation(json) {
+      var res = _halfred2['default'].parse(json);
+      var nearest = res.embeddedArray('location:nearest-cities')[0];
+      if (nearest) {
+        this.results = [this.parseCity(nearest)];
+        this.selectByIndex(0);
+      }
+      this.loading = false;
+      this.el.placeholder = this.oldPlaceholder;
     }
 
     /**
@@ -353,15 +424,19 @@ var TeleportAutocomplete = (function () {
   }, {
     key: 'getCities',
     value: function getCities(cb) {
-      var _this6 = this;
+      var _this7 = this;
 
       if (!this.query) return cb([]);
       var embed = 'city:search-results/city:item/{' + this.embeds + '}';
 
       var req = new XMLHttpRequest();
-      req.open('GET', API_URL + '/cities/?search=' + this.query + '&embed=' + embed);
-      req.on('load', function () {
-        return cb(_this6.parseCities(JSON.parse(req.response)));
+      req.open('GET', this.apiRoot + '/cities/?search=' + this.query + '&embed=' + embed);
+      req.addEventListener('load', function () {
+        var results = _halfred2['default'].parse(JSON.parse(req.response)).embeddedArray('city:search-results').map(function (res) {
+          return _this7.parseCity(res);
+        });
+
+        cb(results);
       });
       req.send();
 
@@ -369,49 +444,54 @@ var TeleportAutocomplete = (function () {
     }
 
     /**
-     * Parse API response
+     * Parse city
      */
   }, {
-    key: 'parseCities',
-    value: function parseCities(json) {
-      var results = _halfred2['default'].parse(json).embeddedArray('city:search-results');
+    key: 'parseCity',
+    value: function parseCity(res) {
+      var city = res.embedded('location:nearest-city') || res.embedded('city:item');
+      city.country = city.embedded('city:country');
+      city.admin1_division = city.embedded('city:admin1_division');
+      city.timezone = city.embedded('city:timezone');
+      city.urban_area = city.embedded('city:urban_area');
 
-      return results.map(function (res) {
-        var city = res.embedded('city:item');
-        city.country = city.embedded('city:country');
-        city.admin1_division = city.embedded('city:admin1_division');
-        city.timezone = city.embedded('city:timezone');
-        city.urban_area = city.embedded('city:urban_area');
+      var name = city.name;
+      var geonameId = city.geoname_id;
+      var population = city.population;
+      var _city$location$latlon = city.location.latlon;
+      var latitude = _city$location$latlon.latitude;
+      var longitude = _city$location$latlon.longitude;
+      var _res$matching_full_name = res.matching_full_name;
+      var title = _res$matching_full_name === undefined ? name : _res$matching_full_name;
 
-        var title = res.matching_full_name;
-        var name = city.name;
-        var geonameId = city.geoname_id;
-        var population = city.population;
-        var _city$location$latlon = city.location.latlon;
-        var latitude = _city$location$latlon.latitude;
-        var longitude = _city$location$latlon.longitude;
+      var result = { title: title, name: name, geonameId: geonameId, latitude: latitude, longitude: longitude, population: population };
 
-        var result = { title: title, name: name, geonameId: geonameId, latitude: latitude, longitude: longitude, population: population };
+      if (city.country) (0, _coreJsLibraryFnObjectAssign2['default'])(result, { country: city.country.name });
+      if (city.admin1_division) (0, _coreJsLibraryFnObjectAssign2['default'])(result, { admin1Division: city.admin1_division.name });
 
-        if (city.country) (0, _coreJsLibraryFnObjectAssign2['default'])(result, { country: city.country.name });
-        if (city.admin1_division) (0, _coreJsLibraryFnObjectAssign2['default'])(result, { admin1Division: city.admin1_division.name });
+      if (city.timezone) {
+        var tzNow = city.timezone.embedded('tz:offsets-now');
+        (0, _coreJsLibraryFnObjectAssign2['default'])(result, { tzOffsetMinutes: tzNow.total_offset_min });
+      }
 
-        if (city.timezone) {
-          var tzNow = city.timezone.embedded('tz:offsets-now');
-          (0, _coreJsLibraryFnObjectAssign2['default'])(result, { tzOffsetMinutes: tzNow.total_offset_min });
-        }
+      if (city.urban_area) {
+        var _city$urban_area = city.urban_area;
+        var uaName = _city$urban_area.name;
+        var uaId = _city$urban_area.ua_id;
+        var uaCityUrl = _city$urban_area.teleport_city_url;
 
-        if (city.urban_area) {
-          var _city$urban_area = city.urban_area;
-          var uaName = _city$urban_area.name;
-          var uaId = _city$urban_area.ua_id;
-          var uaCityUrl = _city$urban_area.teleport_city_url;
+        (0, _coreJsLibraryFnObjectAssign2['default'])(result, { uaName: uaName, uaId: uaId, uaCityUrl: uaCityUrl });
+      }
 
-          (0, _coreJsLibraryFnObjectAssign2['default'])(result, { uaName: uaName, uaId: uaId, uaCityUrl: uaCityUrl });
-        }
+      return result;
+    }
+  }], [{
+    key: 'init',
+    value: function init(el) {
+      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
-        return result;
-      });
+      var opt = typeof el === 'string' || el instanceof HTMLInputElement ? (0, _coreJsLibraryFnObjectAssign2['default'])(options, { el: el }) : el;
+      return new TeleportAutocomplete(opt);
     }
   }]);
 
@@ -421,7 +501,7 @@ var TeleportAutocomplete = (function () {
 exports['default'] = TeleportAutocomplete;
 module.exports = exports['default'];
 
-},{"classlist-polyfill":2,"core-js/library/fn/array/find":3,"core-js/library/fn/object/assign":4,"core-js/library/fn/regexp/escape":5,"debounce":27,"halfred":29,"minivents":33}],2:[function(require,module,exports){
+},{"classlist-polyfill":2,"core-js/library/fn/array/find":3,"core-js/library/fn/object/assign":4,"core-js/library/fn/regexp/escape":5,"debounce":34,"halfred":35,"minivents":39}],2:[function(require,module,exports){
 /*
  * classList.js: Cross-browser full element.classList implementation.
  * 2014-07-23
@@ -665,13 +745,13 @@ if ("document" in window.self) {
 },{}],3:[function(require,module,exports){
 require('../../modules/es6.array.find');
 module.exports = require('../../modules/$.core').Array.find;
-},{"../../modules/$.core":10,"../../modules/es6.array.find":24}],4:[function(require,module,exports){
+},{"../../modules/$.core":10,"../../modules/es6.array.find":30}],4:[function(require,module,exports){
 require('../../modules/es6.object.assign');
 module.exports = require('../../modules/$.core').Object.assign;
-},{"../../modules/$.core":10,"../../modules/es6.object.assign":25}],5:[function(require,module,exports){
+},{"../../modules/$.core":10,"../../modules/es6.object.assign":31}],5:[function(require,module,exports){
 require('../../modules/es7.regexp.escape');
 module.exports = require('../../modules/$.core').RegExp.escape;
-},{"../../modules/$.core":10,"../../modules/es7.regexp.escape":26}],6:[function(require,module,exports){
+},{"../../modules/$.core":10,"../../modules/es7.regexp.escape":32}],6:[function(require,module,exports){
 module.exports = function(it){
   if(typeof it != 'function')throw TypeError(it + ' is not a function!');
   return it;
@@ -685,9 +765,20 @@ module.exports = function(it){
 // 5 -> Array#find
 // 6 -> Array#findIndex
 var ctx      = require('./$.ctx')
+  , isObject = require('./$.is-object')
   , IObject  = require('./$.iobject')
   , toObject = require('./$.to-object')
-  , toLength = require('./$.to-length');
+  , toLength = require('./$.to-length')
+  , isArray  = require('./$.is-array')
+  , SPECIES  = require('./$.wks')('species');
+// 9.4.2.3 ArraySpeciesCreate(originalArray, length)
+var ASC = function(original, length){
+  var C;
+  if(isArray(original) && isObject(C = original.constructor)){
+    C = C[SPECIES];
+    if(C === null)C = undefined;
+  } return new(C === undefined ? Array : C)(length);
+};
 module.exports = function(TYPE){
   var IS_MAP        = TYPE == 1
     , IS_FILTER     = TYPE == 2
@@ -701,7 +792,7 @@ module.exports = function(TYPE){
       , f      = ctx(callbackfn, that, 3)
       , length = toLength(self.length)
       , index  = 0
-      , result = IS_MAP ? Array(length) : IS_FILTER ? [] : undefined
+      , result = IS_MAP ? ASC($this, length) : IS_FILTER ? ASC($this, 0) : undefined
       , val, res;
     for(;length > index; index++)if(NO_HOLES || index in self){
       val = self[index];
@@ -719,14 +810,23 @@ module.exports = function(TYPE){
     return IS_FIND_INDEX ? -1 : IS_SOME || IS_EVERY ? IS_EVERY : result;
   };
 };
-},{"./$.ctx":11,"./$.iobject":17,"./$.to-length":21,"./$.to-object":22}],8:[function(require,module,exports){
+},{"./$.ctx":11,"./$.iobject":18,"./$.is-array":19,"./$.is-object":20,"./$.to-length":25,"./$.to-object":26,"./$.wks":29}],8:[function(require,module,exports){
 // 19.1.2.1 Object.assign(target, source, ...)
 var toObject = require('./$.to-object')
   , IObject  = require('./$.iobject')
-  , enumKeys = require('./$.enum-keys');
+  , enumKeys = require('./$.enum-keys')
+  , has      = require('./$.has');
 
+// should work with symbols and should have deterministic property order (V8 bug)
 module.exports = require('./$.fails')(function(){
-  return Symbol() in Object.assign({}); // Object.assign available and Symbol is native
+  var a = Object.assign
+    , A = {}
+    , B = {}
+    , S = Symbol()
+    , K = 'abcdefghijklmnopqrst';
+  A[S] = 7;
+  K.split('').forEach(function(k){ B[k] = k; });
+  return a({}, A)[S] != 7 || Object.keys(a({}, B)).join('') != K;
 }) ? function assign(target, source){   // eslint-disable-line no-unused-vars
   var T = toObject(target)
     , l = arguments.length
@@ -737,18 +837,18 @@ module.exports = require('./$.fails')(function(){
       , length = keys.length
       , j      = 0
       , key;
-    while(length > j)T[key = keys[j++]] = S[key];
+    while(length > j)if(has(S, key = keys[j++]))T[key] = S[key];
   }
   return T;
 } : Object.assign;
-},{"./$.enum-keys":14,"./$.fails":15,"./$.iobject":17,"./$.to-object":22}],9:[function(require,module,exports){
+},{"./$.enum-keys":14,"./$.fails":15,"./$.has":17,"./$.iobject":18,"./$.to-object":26}],9:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = function(it){
   return toString.call(it).slice(8, -1);
 };
 },{}],10:[function(require,module,exports){
-var core = module.exports = {};
+var core = module.exports = {version: '1.2.0'};
 if(typeof __e == 'number')__e = core; // eslint-disable-line no-undef
 },{}],11:[function(require,module,exports){
 // optional / simple context binding
@@ -766,9 +866,10 @@ module.exports = function(fn, that, length){
     case 3: return function(a, b, c){
       return fn.call(that, a, b, c);
     };
-  } return function(/* ...args */){
-      return fn.apply(that, arguments);
-    };
+  }
+  return function(/* ...args */){
+    return fn.apply(that, arguments);
+  };
 };
 },{"./$.a-function":6}],12:[function(require,module,exports){
 var global    = require('./$.global')
@@ -839,7 +940,7 @@ module.exports = function(it){
   }
   return keys;
 };
-},{"./$":18}],15:[function(require,module,exports){
+},{"./$":21}],15:[function(require,module,exports){
 module.exports = function(exec){
   try {
     return !!exec();
@@ -854,12 +955,27 @@ var global = module.exports = typeof window != UNDEFINED && window.Math == Math
   ? window : typeof self != UNDEFINED && self.Math == Math ? self : Function('return this')();
 if(typeof __g == 'number')__g = global; // eslint-disable-line no-undef
 },{}],17:[function(require,module,exports){
+var hasOwnProperty = {}.hasOwnProperty;
+module.exports = function(it, key){
+  return hasOwnProperty.call(it, key);
+};
+},{}],18:[function(require,module,exports){
 // indexed object, fallback for non-array-like ES3 strings
 var cof = require('./$.cof');
 module.exports = 0 in Object('z') ? Object : function(it){
   return cof(it) == 'String' ? it.split('') : Object(it);
 };
-},{"./$.cof":9}],18:[function(require,module,exports){
+},{"./$.cof":9}],19:[function(require,module,exports){
+// 7.2.2 IsArray(argument)
+var cof = require('./$.cof');
+module.exports = Array.isArray || function(arg){
+  return cof(arg) == 'Array';
+};
+},{"./$.cof":9}],20:[function(require,module,exports){
+module.exports = function(it){
+  return typeof it === 'object' ? it !== null : typeof it === 'function';
+};
+},{}],21:[function(require,module,exports){
 var $Object = Object;
 module.exports = {
   create:     $Object.create,
@@ -873,7 +989,7 @@ module.exports = {
   getSymbols: $Object.getOwnPropertySymbols,
   each:       [].forEach
 };
-},{}],19:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = function(regExp, replace){
   var replacer = replace === Object(replace) ? function(part){
     return replace[part];
@@ -882,29 +998,49 @@ module.exports = function(regExp, replace){
     return String(it).replace(regExp, replacer);
   };
 };
-},{}],20:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
+var global = require('./$.global')
+  , SHARED = '__core-js_shared__'
+  , store  = global[SHARED] || (global[SHARED] = {});
+module.exports = function(key){
+  return store[key] || (store[key] = {});
+};
+},{"./$.global":16}],24:[function(require,module,exports){
 // 7.1.4 ToInteger
 var ceil  = Math.ceil
   , floor = Math.floor;
 module.exports = function(it){
   return isNaN(it = +it) ? 0 : (it > 0 ? floor : ceil)(it);
 };
-},{}],21:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 // 7.1.15 ToLength
 var toInteger = require('./$.to-integer')
   , min       = Math.min;
 module.exports = function(it){
   return it > 0 ? min(toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
 };
-},{"./$.to-integer":20}],22:[function(require,module,exports){
+},{"./$.to-integer":24}],26:[function(require,module,exports){
 // 7.1.13 ToObject(argument)
 var defined = require('./$.defined');
 module.exports = function(it){
   return Object(defined(it));
 };
-},{"./$.defined":13}],23:[function(require,module,exports){
+},{"./$.defined":13}],27:[function(require,module,exports){
+var id = 0
+  , px = Math.random();
+module.exports = function(key){
+  return 'Symbol('.concat(key === undefined ? '' : key, ')_', (++id + px).toString(36));
+};
+},{}],28:[function(require,module,exports){
 module.exports = function(){ /* empty */ };
-},{}],24:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
+var store  = require('./$.shared')('wks')
+  , Symbol = require('./$.global').Symbol;
+module.exports = function(name){
+  return store[name] || (store[name] =
+    Symbol && Symbol[name] || (Symbol || require('./$.uid'))('Symbol.' + name));
+};
+},{"./$.global":16,"./$.shared":23,"./$.uid":27}],30:[function(require,module,exports){
 'use strict';
 // 22.1.3.8 Array.prototype.find(predicate, thisArg = undefined)
 var KEY    = 'find'
@@ -919,18 +1055,25 @@ $def($def.P + $def.F * forced, 'Array', {
   }
 });
 require('./$.unscope')(KEY);
-},{"./$.array-methods":7,"./$.def":12,"./$.unscope":23}],25:[function(require,module,exports){
+},{"./$.array-methods":7,"./$.def":12,"./$.unscope":28}],31:[function(require,module,exports){
 // 19.1.3.1 Object.assign(target, source)
 var $def = require('./$.def');
 
 $def($def.S + $def.F, 'Object', {assign: require('./$.assign')});
-},{"./$.assign":8,"./$.def":12}],26:[function(require,module,exports){
+},{"./$.assign":8,"./$.def":12}],32:[function(require,module,exports){
 // https://github.com/benjamingr/RexExp.escape
 var $def = require('./$.def')
   , $re  = require('./$.replacer')(/[\\^$*+?.()|[\]{}]/g, '\\$&');
 $def($def.S, 'RegExp', {escape: function escape(it){ return $re(it); }});
 
-},{"./$.def":12,"./$.replacer":19}],27:[function(require,module,exports){
+},{"./$.def":12,"./$.replacer":22}],33:[function(require,module,exports){
+module.exports = Date.now || now
+
+function now() {
+    return new Date().getTime()
+}
+
+},{}],34:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -985,14 +1128,7 @@ module.exports = function debounce(func, wait, immediate){
   };
 };
 
-},{"date-now":28}],28:[function(require,module,exports){
-module.exports = Date.now || now
-
-function now() {
-    return new Date().getTime()
-}
-
-},{}],29:[function(require,module,exports){
+},{"date-now":33}],35:[function(require,module,exports){
 var Parser = require('./lib/parser')
   , Resource = require('./lib/resource')
   , validationFlag = false;
@@ -1015,7 +1151,7 @@ module.exports = {
 
 };
 
-},{"./lib/parser":31,"./lib/resource":32}],30:[function(require,module,exports){
+},{"./lib/parser":37,"./lib/resource":38}],36:[function(require,module,exports){
 'use strict';
 
 /*
@@ -1060,7 +1196,7 @@ ImmutableStack.prototype.peek = function() {
 
 module.exports = ImmutableStack;
 
-},{}],31:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 'use strict';
 
 var Resource = require('./resource')
@@ -1270,7 +1406,7 @@ function pathToString(path) {
 
 module.exports = Parser;
 
-},{"./immutable_stack":30,"./resource":32}],32:[function(require,module,exports){
+},{"./immutable_stack":36,"./resource":38}],38:[function(require,module,exports){
 'use strict';
 
 function Resource(links, curies, embedded, validationIssues) {
@@ -1399,7 +1535,7 @@ Resource.prototype.validation = Resource.prototype.validationIssues;
 
 module.exports = Resource;
 
-},{}],33:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 module.exports=function(n){var o,t,e,f={},i=[];n=n||this,n.on=function(n,o,t){(f[n]=f[n]||[]).push([o,t])},n.off=function(n,t){for(n||(f={}),o=f[n]||i,e=o.length=t?o.length:0;e--;)t==o[e][0]&&o.splice(e,1)},n.emit=function(n){for(o=f[n]||i,e=0;t=o[e++];)t[0].apply(t[1],i.slice.call(arguments,1))}};
 },{}]},{},[1])(1)
 });

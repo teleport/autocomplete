@@ -13,7 +13,7 @@
       * { box-sizing: border-box; }
       html { font-size: 16px; }
 
-      html, body, #container {
+      html, body {
         width: 100%;
         height: 100%;
       }
@@ -24,15 +24,12 @@
         margin: 0;
         padding: 1em;
       }
-
-      .my-input {
-      }
     </style>
   </head>
 
   <body>
     <h1>City Autocomplete Example</h1>
-    <input type="text" class="my-input" name="field" value="Tallinn" tabindex="1" autocomplete="off">
+    <input type="text" class="my-input" name="field" tabindex="1" autocomplete="off">
 
     <h3>Result history:</h3>
     <div class="results"></div>
@@ -40,14 +37,10 @@
     <script src="/dist/teleport-autocomplete.js"></script>
     <script>
       var $results = document.querySelector('.results');
+      var appendToResult = $results.insertAdjacentHTML.bind($results, 'afterend');
 
-      var ac = window.autocomplete = new TeleportAutocomplete({
-        el: document.querySelector('.my-input')
-      });
-
-      ac.on('picked', function(value) {
-        var result = JSON.stringify(value, null, 2);
-        $results.insertAdjacentHTML('afterend', '<pre>' + result + '</li>');
+      TeleportAutocomplete.init('.my-input').on('change', function(value) {
+        appendToResult('<pre>' + JSON.stringify(value, null, 2) + '</pre>');
       });
     </script>
   </body>
