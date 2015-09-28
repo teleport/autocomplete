@@ -1,4 +1,4 @@
-/*! teleport-autocomplete - v0.2.0 | https://github.com/teleport/autocomplete#readme | MIT */
+/*! teleport-autocomplete - v0.2.1 | https://github.com/teleport/autocomplete#readme | MIT */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.TeleportAutocomplete = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /* global Ractive */
 
@@ -195,7 +195,7 @@ var TeleportAutocomplete = (function () {
       });
     }
 
-    this.getCities = (0, _debounce2['default'])(this.getCities, 250);
+    this.getCities = (0, _debounce2['default'])(this.getCities, 200);
     return this;
   }
 
@@ -491,7 +491,7 @@ var TeleportAutocomplete = (function () {
       var embed = 'city:search-results/city:item/{' + this.embeds + '}';
 
       var req = new XMLHttpRequest();
-      req.open('GET', this.apiRoot + '/cities/?search=' + this.query + '&embed=' + embed);
+      req.open('GET', this.apiRoot + '/cities/?search=' + this.query + '&embed=' + embed + '&limit=' + this.maxItems);
       req.addEventListener('load', function () {
         var results = _halfred2['default'].parse(JSON.parse(req.response)).embeddedArray('city:search-results').map(function (res) {
           return _this7.parseCity(res);
@@ -516,6 +516,7 @@ var TeleportAutocomplete = (function () {
       city.timezone = city.embedded('city:timezone');
       city.urban_area = city.embedded('city:urban_area');
 
+      var fullName = city.full_name;
       var name = city.name;
       var geonameId = city.geoname_id;
       var population = city.population;
@@ -523,7 +524,7 @@ var TeleportAutocomplete = (function () {
       var latitude = _city$location$latlon.latitude;
       var longitude = _city$location$latlon.longitude;
       var _res$matching_full_name = res.matching_full_name;
-      var title = _res$matching_full_name === undefined ? name : _res$matching_full_name;
+      var title = _res$matching_full_name === undefined ? fullName : _res$matching_full_name;
 
       var result = { title: title, name: name, geonameId: geonameId, latitude: latitude, longitude: longitude, population: population };
 

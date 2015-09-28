@@ -1,4 +1,4 @@
-/*! teleport-autocomplete - v0.2.0 | https://github.com/teleport/autocomplete#readme | MIT */
+/*! teleport-autocomplete - v0.2.1 | https://github.com/teleport/autocomplete#readme | MIT */
 .tp-autocomplete {
   position: relative;
   max-width: 25em; }
@@ -27,7 +27,6 @@
     color: #ccc;
     -webkit-font-smoothing: antialiased; }
   .tp-ac__input:focus {
-    border-bottom: solid 1px #666;
     outline: none; }
   .tp-ac__input::-ms-clear {
     display: none; }

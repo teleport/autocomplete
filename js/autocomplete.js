@@ -83,7 +83,7 @@ class TeleportAutocomplete {
       });
     }
 
-    this.getCities = debounce(this.getCities, 250);
+    this.getCities = debounce(this.getCities, 200);
     return this;
   }
 
@@ -320,7 +320,7 @@ class TeleportAutocomplete {
     const embed = `city:search-results/city:item/{${this.embeds}}`;
 
     const req = new XMLHttpRequest();
-    req.open('GET', `${this.apiRoot}/cities/?search=${this.query}&embed=${embed}`);
+    req.open('GET', `${this.apiRoot}/cities/?search=${this.query}&embed=${embed}&limit=${this.maxItems}`);
     req.addEventListener('load', () => {
       const results = halfred.parse(JSON.parse(req.response))
         .embeddedArray('city:search-results')
@@ -344,10 +344,10 @@ class TeleportAutocomplete {
     city.timezone = city.embedded('city:timezone');
     city.urban_area = city.embedded('city:urban_area');
 
-    const { name, geoname_id: geonameId, population,
+    const { full_name: fullName, name, geoname_id: geonameId, population,
       location: { latlon: { latitude, longitude } } } = city;
 
-    const { matching_full_name: title = name } = res;
+    const { matching_full_name: title = fullName } = res;
 
     const result = { title, name, geonameId, latitude, longitude, population };
 
