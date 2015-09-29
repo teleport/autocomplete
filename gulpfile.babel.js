@@ -30,6 +30,10 @@ const BANNER = `/*! ${pkg.name} - v${pkg.version} | ${pkg.homepage} | ${pkg.lice
 // Browserify params
 const browserifyArgs = assign({}, watchify.args, {
   standalone: 'TeleportAutocomplete',
+  transform: [
+    "babelify",
+    ["ractivate", { "extensions": [".rac"] }]
+  ],
   debug: true,
 });
 
@@ -111,7 +115,7 @@ gulp.task('sass', () => {
 gulp.task('dist:js', ['browserify'], () => {
   return gulp.src('dist/teleport-autocomplete.js')
     .pipe(gp.sourcemaps.init({ loadMaps: true }))
-    .pipe(gp.uglify())
+    .pipe(gp.uglify({ preserveComments: 'license' }))
     .pipe(gp.rename({
       extname: '.min.js',
     }))

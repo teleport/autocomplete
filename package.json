@@ -1,6 +1,6 @@
 {
   "name": "teleport-autocomplete",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Teleport Cities Autocomplete",
   "keywords": [
     "autocomplete",
@@ -51,19 +51,6 @@
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.4.0"
-  },
-  "browserify": {
-    "transform": [
-      "babelify",
-      [
-        "ractivate",
-        {
-          "extensions": [
-            ".rac"
-          ]
-        }
-      ]
-    ]
   },
   "eslintConfig": {
     "extends": "airbnb/base",

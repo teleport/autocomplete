@@ -1,4 +1,4 @@
-/*! teleport-autocomplete - v0.2.4 | https://github.com/teleport/autocomplete#readme | MIT */
+/*! teleport-autocomplete - v0.2.5 | https://github.com/teleport/autocomplete#readme | MIT */
 .tp-autocomplete {
   position: relative;
   max-width: 25em; }
@@ -31,7 +31,8 @@
   .tp-ac__input::-ms-clear {
     display: none; }
   .spinner .tp-ac__input {
-    padding-right: 1.5em; }
+    padding-right: 1.5em;
+    margin-right: -1.5em; }
 
 .tp-ac__list {
   position: absolute;
