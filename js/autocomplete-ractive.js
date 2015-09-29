@@ -8,6 +8,10 @@ import AutocompleteTemplate from '../templates/autocomplete.rac';
 export default Ractive.extend({
   template: AutocompleteTemplate,
 
+  data: {
+    query: '',
+  },
+
   onrender() {
     const { maxItems, apiRoot, geoLocate, itemTemplate, embeds } = this.get();
 
