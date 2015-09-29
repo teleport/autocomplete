@@ -62,7 +62,7 @@ class TeleportAutocomplete {
    */
   constructor({
     el = null, maxItems = 10, itemTemplate = ITEM_TEMPLATE,
-    geoLocate = true, apiRoot = 'https://api.teleport.org/api',
+    geoLocate = true, apiRoot = 'https://api.teleport.org/api', apiVersion = 1,
     embeds = 'city:country,city:admin1_division,city:timezone/tz:offsets-now,city:urban_area',
   } = {}) {
     events(this);
@@ -71,7 +71,7 @@ class TeleportAutocomplete {
     this.setupInput(elem);
 
     assign(this, {
-      maxItems, geoLocate, apiRoot, itemTemplate, embeds, results: [],
+      maxItems, geoLocate, apiRoot, apiVersion, itemTemplate, embeds, results: [],
       _activeIndex: 0, _cache: {}, _query: this.el.value, value: null,
     });
 
@@ -287,6 +287,7 @@ class TeleportAutocomplete {
 
     navigator.geolocation.getCurrentPosition(({ coords }) => {
       req.open('GET', `${this.apiRoot}/locations/${coords.latitude},${coords.longitude}/?embed=${embed}`);
+      req.setRequestHeader('Accept', `application/vnd.teleport.v${this.apiVersion}+json`);
       req.addEventListener('load', () => this.parseLocation(JSON.parse(req.response)));
       req.send();
     }, ({ message }) => {
@@ -321,6 +322,7 @@ class TeleportAutocomplete {
 
     const req = new XMLHttpRequest();
     req.open('GET', `${this.apiRoot}/cities/?search=${this.query}&embed=${embed}&limit=${this.maxItems}`);
+    req.setRequestHeader('Accept', `application/vnd.teleport.v${this.apiVersion}+json`);
     req.addEventListener('load', () => {
       const results = halfred.parse(JSON.parse(req.response))
         .embeddedArray('city:search-results')

@@ -1,4 +1,4 @@
-/*! teleport-autocomplete - v0.2.1 | https://github.com/teleport/autocomplete#readme | MIT */
+/*! teleport-autocomplete - v0.2.2 | https://github.com/teleport/autocomplete#readme | MIT */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.TeleportAutocomplete = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /* global Ractive */
 
@@ -172,6 +172,8 @@ var TeleportAutocomplete = (function () {
     var geoLocate = _ref$geoLocate === undefined ? true : _ref$geoLocate;
     var _ref$apiRoot = _ref.apiRoot;
     var apiRoot = _ref$apiRoot === undefined ? 'https://api.teleport.org/api' : _ref$apiRoot;
+    var _ref$apiVersion = _ref.apiVersion;
+    var apiVersion = _ref$apiVersion === undefined ? 1 : _ref$apiVersion;
     var _ref$embeds = _ref.embeds;
     var embeds = _ref$embeds === undefined ? 'city:country,city:admin1_division,city:timezone/tz:offsets-now,city:urban_area' : _ref$embeds;
 
@@ -183,7 +185,7 @@ var TeleportAutocomplete = (function () {
     this.setupInput(elem);
 
     (0, _coreJsLibraryFnObjectAssign2['default'])(this, {
-      maxItems: maxItems, geoLocate: geoLocate, apiRoot: apiRoot, itemTemplate: itemTemplate, embeds: embeds, results: [],
+      maxItems: maxItems, geoLocate: geoLocate, apiRoot: apiRoot, apiVersion: apiVersion, itemTemplate: itemTemplate, embeds: embeds, results: [],
       _activeIndex: 0, _cache: {}, _query: this.el.value, value: null
     });
 
@@ -448,6 +450,7 @@ var TeleportAutocomplete = (function () {
         var coords = _ref2.coords;
 
         req.open('GET', _this6.apiRoot + '/locations/' + coords.latitude + ',' + coords.longitude + '/?embed=' + embed);
+        req.setRequestHeader('Accept', 'application/vnd.teleport.v' + _this6.apiVersion + '+json');
         req.addEventListener('load', function () {
           return _this6.parseLocation(JSON.parse(req.response));
         });
@@ -492,6 +495,7 @@ var TeleportAutocomplete = (function () {
 
       var req = new XMLHttpRequest();
       req.open('GET', this.apiRoot + '/cities/?search=' + this.query + '&embed=' + embed + '&limit=' + this.maxItems);
+      req.setRequestHeader('Accept', 'application/vnd.teleport.v' + this.apiVersion + '+json');
       req.addEventListener('load', function () {
         var results = _halfred2['default'].parse(JSON.parse(req.response)).embeddedArray('city:search-results').map(function (res) {
           return _this7.parseCity(res);
