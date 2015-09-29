@@ -1,4 +1,4 @@
-/*! teleport-autocomplete - v0.2.2 | https://github.com/teleport/autocomplete#readme | MIT */
+/*! teleport-autocomplete - v0.2.3 | https://github.com/teleport/autocomplete#readme | MIT */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.TeleportAutocomplete = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /* global Ractive */
 
@@ -1604,69 +1604,7 @@ module.exports = Resource;
 },{}],40:[function(require,module,exports){
 module.exports=function(n){var o,t,e,f={},i=[];n=n||this,n.on=function(n,o,t){(f[n]=f[n]||[]).push([o,t])},n.off=function(n,t){for(n||(f={}),o=f[n]||i,e=o.length=t?o.length:0;e--;)t==o[e][0]&&o.splice(e,1)},n.emit=function(n){for(o=f[n]||i,e=0;t=o[e++];)t[0].apply(t[1],i.slice.call(arguments,1))}};
 },{}],41:[function(require,module,exports){
-module.exports = {
-  "v": 3,
-  "t": [
-    {
-      "p": [
-        1,
-        1,
-        0
-      ],
-      "t": 7,
-      "e": "input",
-      "a": {
-        "type": "text",
-        "autocomplete": "off",
-        "value": [
-          {
-            "t": 2,
-            "r": "query",
-            "p": [
-              1,
-              46,
-              45
-            ]
-          }
-        ],
-        "class": [
-          "tp-ac__input ",
-          {
-            "t": 2,
-            "r": "class",
-            "p": [
-              1,
-              77,
-              76
-            ]
-          }
-        ],
-        "placeholder": [
-          {
-            "t": 2,
-            "r": "placeholder",
-            "p": [
-              2,
-              16,
-              102
-            ]
-          }
-        ],
-        "tabindex": [
-          {
-            "t": 2,
-            "r": "tabindex",
-            "p": [
-              2,
-              43,
-              129
-            ]
-          }
-        ]
-      }
-    }
-  ]
-}
+module.exports={"v":3,"t":[{"t":7,"e":"input","a":{"type":"text","autocomplete":"off","value":[{"t":2,"r":"query"}],"class":["tp-ac__input ",{"t":2,"r":"class"}],"placeholder":[{"t":2,"r":"placeholder"}],"tabindex":[{"t":2,"r":"tabindex"}]}}]}
 },{}]},{},[1])(1)
 });
 
