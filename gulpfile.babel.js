@@ -38,6 +38,7 @@ const rebundle = (bundler, entry) => {
   return bundler.bundle()
     .on('error', gp.util.log)
     .pipe(source(entry))
+    .pipe(gp.derequire())
     .pipe(buffer())
     .pipe(gp.rename({
       dirname: '',
