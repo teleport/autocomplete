@@ -61,7 +61,7 @@ class TeleportAutocomplete {
    * Parse arguments and wrap input
    */
   constructor({
-    el = null, maxItems = 10, itemTemplate = ITEM_TEMPLATE,
+    el = null, value, maxItems = 10, itemTemplate = ITEM_TEMPLATE,
     geoLocate = true, apiRoot = 'https://api.teleport.org/api', apiVersion = 1,
     embeds = 'city:country,city:admin1_division,city:timezone/tz:offsets-now,city:urban_area',
   } = {}) {
@@ -72,11 +72,13 @@ class TeleportAutocomplete {
 
     assign(this, {
       maxItems, geoLocate, apiRoot, apiVersion, itemTemplate, embeds, results: [],
-      _activeIndex: 0, _cache: {}, _query: this.el.value, value: null,
+      _activeIndex: 0, _cache: {}, _query: this.el.value, value,
     });
 
     // Prefetch results
-    if (this.query) {
+    if (this.value && this.value.title) {
+      this.query = this.value.title;
+    } else if (this.query) {
       this.fetchResults(() => {
         this.value = this.getResultByTitle(this.query);
         this.emit('change', this.value);
@@ -234,7 +236,7 @@ class TeleportAutocomplete {
       itemWrapperTemplate(this.itemTemplate(res)))
       .slice(0, this.maxItems).join('');
 
-    if (!results && this.query !== '') results = NO_RESULTS_TEMPLATE;
+    if (!results && this.query !== '' && !this.value) results = NO_RESULTS_TEMPLATE;
     if (this.query === '' && this.geoLocate) results = GEOLOCATE_TEMPLATE;
     this.list.innerHTML = results;
 
@@ -279,7 +281,7 @@ class TeleportAutocomplete {
    */
   currentLocation() {
     const req = new XMLHttpRequest();
-    const embed = `location:nearest-cities/location:nearest-city/{${this.embeds}}`;
+    const embed = `location:nearest-cities/location:nearest-city/${this.embeds ? `{${this.embeds}}` : ''}`;
 
     this.loading = true;
     this.oldPlaceholder = this.el.placeholder;
@@ -318,7 +320,7 @@ class TeleportAutocomplete {
    */
   getCities(cb) {
     if (!this.query) return cb([]);
-    const embed = `city:search-results/city:item/{${this.embeds}}`;
+    const embed = `city:search-results/city:item/${this.embeds ? `{${this.embeds}}` : ''}`;
 
     const req = new XMLHttpRequest();
     req.open('GET', `${this.apiRoot}/cities/?search=${this.query}&embed=${embed}&limit=${this.maxItems}`);

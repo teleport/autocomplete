@@ -13,13 +13,13 @@ export default Ractive.extend({
   },
 
   onrender() {
-    const { maxItems, apiRoot, geoLocate, itemTemplate, embeds } = this.get();
+    const { maxItems, apiRoot, geoLocate, itemTemplate, embeds, value } = this.get();
 
     this.ac = new Autocomplete(assign({ el: this.find('input') }, {
-      maxItems, apiRoot, geoLocate, itemTemplate, embeds,
+      maxItems, apiRoot, geoLocate, itemTemplate, embeds, value,
     }));
 
-    this.ac.on('change', value => this.set('value', value));
+    this.ac.on('change', val => this.set('value', val));
     this.ac.on('querychange', query => this.set('query', query));
   },
 
