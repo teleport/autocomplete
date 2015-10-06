@@ -136,7 +136,7 @@ class TeleportAutocomplete {
     this.el.on('blur', this.onblur.bind(this));
     this.el.on('click', this.onclick.bind(this));
 
-    this.list.on('click', this.onlistclick.bind(this));
+    this.list.on('mousedown', this.onlistclick.bind(this));
   }
 
   /**
@@ -156,7 +156,7 @@ class TeleportAutocomplete {
   onfocus() { this.renderList(); }
 
   // Input lost focus, close list
-  onblur() { setTimeout(() => this.list.innerHTML = '', 100); }
+  onblur() { this.list.innerHTML = ''; }
 
   // Input was typed into
   oninput() {
@@ -184,7 +184,7 @@ class TeleportAutocomplete {
       if (!this.value && this.query) event.preventDefault();
       this.selectByIndex(this.activeIndex);
       break;
-    case Key.TAB: this.selectByIndex(this.activeIndex);
+    case Key.TAB: if (!this.value) this.selectByIndex(this.activeIndex);
       break;
     case Key.UP: this.activeIndex = Math.max(0, this.activeIndex - 1);
       break;

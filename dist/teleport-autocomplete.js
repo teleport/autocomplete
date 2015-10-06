@@ -195,7 +195,7 @@ var TeleportAutocomplete = (function () {
       this.el.on('blur', this.onblur.bind(this));
       this.el.on('click', this.onclick.bind(this));
 
-      this.list.on('click', this.onlistclick.bind(this));
+      this.list.on('mousedown', this.onlistclick.bind(this));
     }
 
     /**
@@ -228,22 +228,18 @@ var TeleportAutocomplete = (function () {
   }, {
     key: 'onblur',
     value: function onblur() {
-      var _this2 = this;
-
-      setTimeout(function () {
-        return _this2.list.innerHTML = '';
-      }, 100);
+      this.list.innerHTML = '';
     }
 
     // Input was typed into
   }, {
     key: 'oninput',
     value: function oninput() {
-      var _this3 = this;
+      var _this2 = this;
 
       this._query = this.el.value;
       this.fetchResults(function () {
-        return _this3.renderList();
+        return _this2.renderList();
       });
     }
 
@@ -270,7 +266,7 @@ var TeleportAutocomplete = (function () {
           this.selectByIndex(this.activeIndex);
           break;
         case Key.TAB:
-          this.selectByIndex(this.activeIndex);
+          if (!this.value) this.selectByIndex(this.activeIndex);
           break;
         case Key.UP:
           this.activeIndex = Math.max(0, this.activeIndex - 1);
@@ -326,10 +322,10 @@ var TeleportAutocomplete = (function () {
   }, {
     key: 'renderList',
     value: function renderList() {
-      var _this4 = this;
+      var _this3 = this;
 
       var results = this.results.map(function (res) {
-        return itemWrapperTemplate(_this4.itemTemplate(res));
+        return itemWrapperTemplate(_this3.itemTemplate(res));
       }).slice(0, this.maxItems).join('');
 
       if (!results && this.query !== '' && !this.value) results = NO_RESULTS_TEMPLATE;
@@ -357,7 +353,7 @@ var TeleportAutocomplete = (function () {
   }, {
     key: 'fetchResults',
     value: function fetchResults() {
-      var _this5 = this;
+      var _this4 = this;
 
       var cb = arguments.length <= 0 || arguments[0] === undefined ? function noop() {} : arguments[0];
 
@@ -371,9 +367,9 @@ var TeleportAutocomplete = (function () {
       }
 
       this.req = this.getCities(function (results) {
-        _this5.results = _this5._cache[_this5.query] = results;
+        _this4.results = _this4._cache[_this4.query] = results;
         cb();
-        _this5.loading = false;
+        _this4.loading = false;
       });
 
       this.loading = true;
@@ -385,7 +381,7 @@ var TeleportAutocomplete = (function () {
   }, {
     key: 'currentLocation',
     value: function currentLocation() {
-      var _this6 = this;
+      var _this5 = this;
 
       var req = new XMLHttpRequest();
       var embed = 'location:nearest-cities/location:nearest-city/' + (this.embeds ? '{' + this.embeds + '}' : '');
@@ -397,19 +393,19 @@ var TeleportAutocomplete = (function () {
       navigator.geolocation.getCurrentPosition(function (_ref2) {
         var coords = _ref2.coords;
 
-        req.open('GET', _this6.apiRoot + '/locations/' + coords.latitude + ',' + coords.longitude + '/?embed=' + embed);
-        req.setRequestHeader('Accept', 'application/vnd.teleport.v' + _this6.apiVersion + '+json');
+        req.open('GET', _this5.apiRoot + '/locations/' + coords.latitude + ',' + coords.longitude + '/?embed=' + embed);
+        req.setRequestHeader('Accept', 'application/vnd.teleport.v' + _this5.apiVersion + '+json');
         req.addEventListener('load', function () {
-          return _this6.parseLocation(JSON.parse(req.response));
+          return _this5.parseLocation(JSON.parse(req.response));
         });
         req.send();
       }, function (_ref3) {
         var message = _ref3.message;
 
-        _this6.loading = false;
-        _this6.el.placeholder = message;
+        _this5.loading = false;
+        _this5.el.placeholder = message;
         setTimeout(function () {
-          return _this6.el.placeholder = _this6.oldPlaceholder;
+          return _this5.el.placeholder = _this5.oldPlaceholder;
         }, 3000);
       }, { timeout: 5000 });
     }
@@ -436,7 +432,7 @@ var TeleportAutocomplete = (function () {
   }, {
     key: 'getCities',
     value: function getCities(cb) {
-      var _this7 = this;
+      var _this6 = this;
 
       if (!this.query) return cb([]);
       var embed = 'city:search-results/city:item/' + (this.embeds ? '{' + this.embeds + '}' : '');
@@ -446,7 +442,7 @@ var TeleportAutocomplete = (function () {
       req.setRequestHeader('Accept', 'application/vnd.teleport.v' + this.apiVersion + '+json');
       req.addEventListener('load', function () {
         var results = _halfred2['default'].parse(JSON.parse(req.response)).embeddedArray('city:search-results').map(function (res) {
-          return _this7.parseCity(res);
+          return _this6.parseCity(res);
         });
 
         cb(results);
