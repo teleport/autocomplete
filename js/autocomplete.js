@@ -1,4 +1,5 @@
 import 'classlist-polyfill';
+import 'element-closest';
 
 import halfred from 'halfred';
 import events from 'minivents';
@@ -145,7 +146,7 @@ class TeleportAutocomplete {
 
   // Clicked on list item, select item
   onlistclick(event) {
-    const index = [].indexOf.call(this.list.children, event.target);
+    const index = [].indexOf.call(this.list.children, event.target.closest('.tp-ac__item'));
     this.selectByIndex(index);
   }
 
