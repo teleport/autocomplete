@@ -200,13 +200,14 @@ class TeleportAutocomplete {
    * Select option from list by index
    */
   selectByIndex(index) {
-    const firstItem = this.list.firstChild;
-    if (firstItem && firstItem.classList.contains('geolocate') && index === 0) this.currentLocation();
     this.activeIndex = index;
-
     const oldValue = this.value;
     this.value = this.results[index] || null;
-    if (oldValue !== this.value) this.emit('change', this.value);
+
+    const isGeolocate = this.list.firstChild && this.list.firstChild.classList.contains('geolocate');
+    if (isGeolocate) this.currentLocation();
+
+    if (oldValue !== this.value && !isGeolocate) this.emit('change', this.value);
 
     this.list.innerHTML = '';
     this.query = this.value ? this.value.title : '';
