@@ -222,8 +222,10 @@ class TeleportAutocomplete {
     this.query
       .split(/[\,\s]+/)
       .filter(qr => !!qr)
-      .forEach(query =>
-        res = res.replace(new RegExp(escapeRegexp(query), 'gi'), '<span>$&</span>'));
+      .forEach(query => {
+        const matcher = new RegExp(escapeRegexp(query) + '(?![^<]*>|[^<>]*<\/)', 'gi');
+        res = res.replace(matcher, '<span>$&</span>');
+      });
 
     return res;
   }
