@@ -1,4 +1,4 @@
-/*! teleport-autocomplete - v0.2.8 | https://github.com/teleport/autocomplete#readme | MIT */
+/*! teleport-autocomplete - v0.2.9 | https://github.com/teleport/autocomplete#readme | MIT */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.TeleportAutocomplete = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
@@ -13,6 +13,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 _dereq_('classlist-polyfill');
+
+_dereq_('element-closest');
 
 var _halfred = _dereq_('halfred');
 
@@ -206,7 +208,7 @@ var TeleportAutocomplete = (function () {
   }, {
     key: 'onlistclick',
     value: function onlistclick(event) {
-      var index = [].indexOf.call(this.list.children, event.target);
+      var index = [].indexOf.call(this.list.children, event.target.closest('.tp-ac__item'));
       this.selectByIndex(index);
     }
 
@@ -285,13 +287,14 @@ var TeleportAutocomplete = (function () {
   }, {
     key: 'selectByIndex',
     value: function selectByIndex(index) {
-      var firstItem = this.list.firstChild;
-      if (firstItem && firstItem.classList.contains('geolocate') && index === 0) this.currentLocation();
       this.activeIndex = index;
-
       var oldValue = this.value;
       this.value = this.results[index] || null;
-      if (oldValue !== this.value) this.emit('change', this.value);
+
+      var isGeolocate = this.list.firstChild && this.list.firstChild.classList.contains('geolocate');
+      if (isGeolocate) this.currentLocation();
+
+      if (oldValue !== this.value && !isGeolocate) this.emit('change', this.value);
 
       this.list.innerHTML = '';
       this.query = this.value ? this.value.title : '';
@@ -310,7 +313,8 @@ var TeleportAutocomplete = (function () {
       this.query.split(/[\,\s]+/).filter(function (qr) {
         return !!qr;
       }).forEach(function (query) {
-        return res = res.replace(new RegExp((0, _coreJsLibraryFnRegexpEscape2['default'])(query), 'gi'), '<span>$&</span>');
+        var matcher = new RegExp((0, _coreJsLibraryFnRegexpEscape2['default'])(query) + '(?![^<]*>|[^<>]*<\/)', 'gi');
+        res = res.replace(matcher, '<span>$&</span>');
       });
 
       return res;
@@ -511,7 +515,7 @@ var TeleportAutocomplete = (function () {
 exports['default'] = TeleportAutocomplete;
 module.exports = exports['default'];
 
-},{"classlist-polyfill":2,"core-js/library/fn/array/find":3,"core-js/library/fn/object/assign":4,"core-js/library/fn/regexp/escape":5,"debounce":33,"halfred":35,"minivents":39}],2:[function(_dereq_,module,exports){
+},{"classlist-polyfill":2,"core-js/library/fn/array/find":3,"core-js/library/fn/object/assign":4,"core-js/library/fn/regexp/escape":5,"debounce":33,"element-closest":35,"halfred":36,"minivents":40}],2:[function(_dereq_,module,exports){
 /*
  * classList.js: Cross-browser full element.classList implementation.
  * 2014-07-23
@@ -1139,6 +1143,25 @@ function now() {
 }
 
 },{}],35:[function(_dereq_,module,exports){
+(function (ELEMENT) {
+	ELEMENT.matches = ELEMENT.matches || ELEMENT.mozMatchesSelector || ELEMENT.msMatchesSelector || ELEMENT.oMatchesSelector || ELEMENT.webkitMatchesSelector;
+
+	ELEMENT.closest = ELEMENT.closest || function closest(selector) {
+		var element = this;
+
+		while (element) {
+			if (element.matches(selector)) {
+				break;
+			}
+
+			element = element.parentElement;
+		}
+
+		return element;
+	};
+}(Element.prototype));
+
+},{}],36:[function(_dereq_,module,exports){
 var Parser = _dereq_('./lib/parser')
   , Resource = _dereq_('./lib/resource')
   , validationFlag = false;
@@ -1161,7 +1184,7 @@ module.exports = {
 
 };
 
-},{"./lib/parser":37,"./lib/resource":38}],36:[function(_dereq_,module,exports){
+},{"./lib/parser":38,"./lib/resource":39}],37:[function(_dereq_,module,exports){
 'use strict';
 
 /*
@@ -1206,7 +1229,7 @@ ImmutableStack.prototype.peek = function() {
 
 module.exports = ImmutableStack;
 
-},{}],37:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var Resource = _dereq_('./resource')
@@ -1416,7 +1439,7 @@ function pathToString(path) {
 
 module.exports = Parser;
 
-},{"./immutable_stack":36,"./resource":38}],38:[function(_dereq_,module,exports){
+},{"./immutable_stack":37,"./resource":39}],39:[function(_dereq_,module,exports){
 'use strict';
 
 function Resource(links, curies, embedded, validationIssues) {
@@ -1545,7 +1568,7 @@ Resource.prototype.validation = Resource.prototype.validationIssues;
 
 module.exports = Resource;
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 module.exports=function(n){var o,t,e,f={},i=[];n=n||this,n.on=function(n,o,t){(f[n]=f[n]||[]).push([o,t])},n.off=function(n,t){for(n||(f={}),o=f[n]||i,e=o.length=t?o.length:0;e--;)t==o[e][0]&&o.splice(e,1)},n.emit=function(n){for(o=f[n]||i,e=0;t=o[e++];)t[0].apply(t[1],i.slice.call(arguments,1))}};
 },{}]},{},[1])(1)
 });
