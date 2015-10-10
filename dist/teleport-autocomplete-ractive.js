@@ -1,4 +1,4 @@
-/*! teleport-autocomplete - v0.2.9 | https://github.com/teleport/autocomplete#readme | MIT */
+/*! teleport-autocomplete - v0.3.0 | https://github.com/teleport/autocomplete#readme | MIT */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.TeleportAutocomplete = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 /* global Ractive */
 
@@ -235,6 +235,16 @@ var TeleportAutocomplete = (function () {
     }
 
     /**
+     * Clear the selected value
+     */
+  }, {
+    key: 'clear',
+    value: function clear() {
+      this.results = [];
+      this.selectByIndex(0);
+    }
+
+    /**
      * Wrap input node in container
      */
   }, {
@@ -317,10 +327,7 @@ var TeleportAutocomplete = (function () {
       switch (code) {
         case Key.BACK:
           // Clear filled value or last char
-          if (this.value || this.query.length === 1) {
-            this.results = [];
-            this.selectByIndex(0);
-          }
+          if (this.value || this.query.length === 1) this.clear();
           break;
         case Key.ENTER:
           // Prevent submit if query is to be selected
@@ -388,12 +395,17 @@ var TeleportAutocomplete = (function () {
     value: function renderList() {
       var _this3 = this;
 
+      var _ref2 = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+      var _ref2$geoLocate = _ref2.geoLocate;
+      var geoLocate = _ref2$geoLocate === undefined ? this.geoLocate : _ref2$geoLocate;
+
       var results = this.results.map(function (res) {
         return itemWrapperTemplate(_this3.itemTemplate(res));
       }).slice(0, this.maxItems).join('');
 
       if (!results && this.query !== '' && !this.value) results = NO_RESULTS_TEMPLATE;
-      if (this.query === '' && this.geoLocate) results = GEOLOCATE_TEMPLATE;
+      if (this.query === '' && geoLocate) results = GEOLOCATE_TEMPLATE;
       this.list.innerHTML = results;
 
       this.activeIndex = 0;
@@ -454,8 +466,8 @@ var TeleportAutocomplete = (function () {
       this.oldPlaceholder = this.el.placeholder;
       this.el.placeholder = 'Detecting location...';
 
-      navigator.geolocation.getCurrentPosition(function (_ref2) {
-        var coords = _ref2.coords;
+      navigator.geolocation.getCurrentPosition(function (_ref3) {
+        var coords = _ref3.coords;
 
         req.open('GET', _this5.apiRoot + '/locations/' + coords.latitude + ',' + coords.longitude + '/?embed=' + embed);
         req.setRequestHeader('Accept', 'application/vnd.teleport.v' + _this5.apiVersion + '+json');
@@ -463,8 +475,8 @@ var TeleportAutocomplete = (function () {
           return _this5.parseLocation(JSON.parse(req.response));
         });
         req.send();
-      }, function (_ref3) {
-        var message = _ref3.message;
+      }, function (_ref4) {
+        var message = _ref4.message;
 
         _this5.loading = false;
         _this5.el.placeholder = message;
@@ -484,7 +496,12 @@ var TeleportAutocomplete = (function () {
       var nearest = res.embeddedArray('location:nearest-cities')[0];
       if (nearest) {
         this.results = [this.parseCity(nearest)];
-        this.selectByIndex(0);
+        if (this.geoLocate === 'nopick') {
+          this.el.focus();
+          this.renderList({ geoLocate: false });
+        } else {
+          this.selectByIndex(0);
+        }
       }
       this.loading = false;
       this.el.placeholder = this.oldPlaceholder;
