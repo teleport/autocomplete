@@ -241,13 +241,13 @@ class TeleportAutocomplete {
   /**
    * Render result list
    */
-  renderList() {
+  renderList({ geoLocate = this.geoLocate } = {}) {
     let results = this.results.map(res =>
       itemWrapperTemplate(this.itemTemplate(res)))
       .slice(0, this.maxItems).join('');
 
     if (!results && this.query !== '' && !this.value) results = NO_RESULTS_TEMPLATE;
-    if (this.query === '' && this.geoLocate) results = GEOLOCATE_TEMPLATE;
+    if (this.query === '' && geoLocate) results = GEOLOCATE_TEMPLATE;
     this.list.innerHTML = results;
 
     this.activeIndex = 0;
@@ -318,7 +318,12 @@ class TeleportAutocomplete {
     const nearest = res.embeddedArray('location:nearest-cities')[0];
     if (nearest) {
       this.results = [this.parseCity(nearest)];
-      this.selectByIndex(0);
+      if (this.geoLocate === 'nopick') {
+        this.el.focus();
+        this.renderList({ geoLocate: false });
+      } else {
+        this.selectByIndex(0);
+      }
     }
     this.loading = false;
     this.el.placeholder = this.oldPlaceholder;
