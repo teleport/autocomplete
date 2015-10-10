@@ -117,6 +117,15 @@ class TeleportAutocomplete {
 
 
   /**
+   * Clear the selected value
+   */
+  clear() {
+    this.results = [];
+    this.selectByIndex(0);
+  }
+
+
+  /**
    * Wrap input node in container
    */
   setupInput(el) {
@@ -175,10 +184,7 @@ class TeleportAutocomplete {
     switch (code) {
     case Key.BACK:
       // Clear filled value or last char
-      if (this.value || this.query.length === 1) {
-        this.results = [];
-        this.selectByIndex(0);
-      }
+      if (this.value || this.query.length === 1) this.clear();
       break;
     case Key.ENTER:
       // Prevent submit if query is to be selected
