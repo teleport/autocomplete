@@ -35,13 +35,18 @@ TeleportAutocomplete.init('.my-input').on('change', function(value) { console.lo
 Destroys autocomplete instance, removing the wrapper and events from the input element.
 
 
+#### TeleportAutocomplete#clear()
+
+Clears selected autocomplete value.
+
+
 ### Options
 
 When initializing a TeleportAutocomplete component, you can set following parameters:
 
 * `el` – Selector string or `HTMLInputElement` to wrap around. **Required**.
 * `maxItems` *(default: 10)* - Maximum number of items to display in dropdown.
-* `geoLocate` *(default: true)* - If `true`, enables dropdown item to geolocate current location.
+* `geoLocate` *(default: true)* - If `true`, enables dropdown item to geolocate current location. When set to  `nopick`, the geolocated value is not automatically picked.
 * `embed` *(default: 'city:country,city:admin1_division,city:timezone/tz:offsets-now,city:urban_area')* - Override set of resources embedded intro response. Defaults to adding country, administrative level, timezone and urban area info to response.
 * `itemTemplate` - Function which gets called with result item as first argument. Can be used for customizing list output. Default: `function renderItem(item) { return this.wrapMatches(item.title); };`.
 `wrapMatches` is a helper function, which wraps query string matches of title between `<span>` tags.
