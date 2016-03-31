@@ -1,4 +1,4 @@
-/*! teleport-autocomplete - v0.3.0 | https://github.com/teleport/autocomplete#readme | MIT */
+/*! teleport-autocomplete - v0.3.1 | https://github.com/teleport/autocomplete#readme | MIT */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.TeleportAutocomplete = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 /* global Ractive */
 
@@ -567,11 +567,12 @@ var TeleportAutocomplete = (function () {
 
       if (city.urban_area) {
         var _city$urban_area = city.urban_area;
+        var uaSlug = _city$urban_area.slug;
         var uaName = _city$urban_area.name;
         var uaId = _city$urban_area.ua_id;
         var uaCityUrl = _city$urban_area.teleport_city_url;
 
-        (0, _coreJsLibraryFnObjectAssign2['default'])(result, { uaName: uaName, uaId: uaId, uaCityUrl: uaCityUrl });
+        (0, _coreJsLibraryFnObjectAssign2['default'])(result, { uaName: uaName, uaId: uaId, uaCityUrl: uaCityUrl, uaSlug: uaSlug });
       }
 
       return result;

@@ -379,8 +379,8 @@ class TeleportAutocomplete {
     }
 
     if (city.urban_area) {
-      const { name: uaName, ua_id: uaId, teleport_city_url: uaCityUrl } = city.urban_area;
-      assign(result, { uaName, uaId, uaCityUrl });
+      const { slug: uaSlug, name: uaName, ua_id: uaId, teleport_city_url: uaCityUrl } = city.urban_area;
+      assign(result, { uaName, uaId, uaCityUrl, uaSlug });
     }
 
     return result;
