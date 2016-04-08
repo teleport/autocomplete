@@ -371,7 +371,10 @@ class TeleportAutocomplete {
     const result = { title, name, geonameId, latitude, longitude, population };
 
     if (city.country) assign(result, { country: city.country.name });
-    if (city.admin1_division) assign(result, { admin1Division: city.admin1_division.name });
+    if (city.admin1_division) {
+      const { name: admin1Division, geonames_admin1_code: admin1DivisionCode } = city.admin1_division;
+      assign(result, { admin1Division, admin1DivisionCode });
+    }
 
     if (city.timezone) {
       const tzNow = city.timezone.embedded('tz:offsets-now');
