@@ -140,9 +140,15 @@ gulp.task('dist:css', ['sass'], () => {
 
 
 /**
+ * Build package
+ */
+gulp.task('build', ['dist:js', 'dist:css']);
+
+
+/**
  * Release package
  */
-gulp.task('release', ['dist:js', 'dist:css'], (done) => {
+gulp.task('release', ['build'], (done) => {
   spawn('npm', ['publish'], { stdio: 'inherit' }).on('close', done);
 });
 
