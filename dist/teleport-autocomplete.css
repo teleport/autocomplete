@@ -56,11 +56,9 @@
           user-select: none;
   white-space: nowrap;
   text-overflow: ellipsis; }
-  .tp-ac__item:hover,
-  .tp-ac__item.is-active {
+  .tp-ac__item:hover, .tp-ac__item.is-active {
     background-color: #ddd; }
-  .tp-ac__item.no-results,
-  .tp-ac__item.no-results:hover {
+  .tp-ac__item.no-results, .tp-ac__item.no-results:hover {
     cursor: default;
     background-color: #fff; }
   .tp-ac__item span {

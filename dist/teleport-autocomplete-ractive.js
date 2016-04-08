@@ -59,7 +59,7 @@ exports['default'] = Ractive.extend({
 });
 module.exports = exports['default'];
 
-},{"../templates/autocomplete.rac":42,"./autocomplete":2,"core-js/library/fn/object/assign":5}],2:[function(_dereq_,module,exports){
+},{"../templates/autocomplete.rac":41,"./autocomplete":2,"core-js/library/fn/object/assign":5}],2:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -558,7 +558,13 @@ var TeleportAutocomplete = (function () {
       var result = { title: title, name: name, geonameId: geonameId, latitude: latitude, longitude: longitude, population: population };
 
       if (city.country) (0, _coreJsLibraryFnObjectAssign2['default'])(result, { country: city.country.name });
-      if (city.admin1_division) (0, _coreJsLibraryFnObjectAssign2['default'])(result, { admin1Division: city.admin1_division.name });
+      if (city.admin1_division) {
+        var _city$admin1_division = city.admin1_division;
+        var admin1Division = _city$admin1_division.name;
+        var admin1DivisionCode = _city$admin1_division.geonames_admin1_code;
+
+        (0, _coreJsLibraryFnObjectAssign2['default'])(result, { admin1Division: admin1Division, admin1DivisionCode: admin1DivisionCode });
+      }
 
       if (city.timezone) {
         var tzNow = city.timezone.embedded('tz:offsets-now');
@@ -593,7 +599,7 @@ var TeleportAutocomplete = (function () {
 exports['default'] = TeleportAutocomplete;
 module.exports = exports['default'];
 
-},{"classlist-polyfill":3,"core-js/library/fn/array/find":4,"core-js/library/fn/object/assign":5,"core-js/library/fn/regexp/escape":6,"debounce":34,"element-closest":36,"halfred":37,"minivents":41}],3:[function(_dereq_,module,exports){
+},{"classlist-polyfill":3,"core-js/library/fn/array/find":4,"core-js/library/fn/object/assign":5,"core-js/library/fn/regexp/escape":6,"debounce":34,"element-closest":35,"halfred":36,"minivents":40}],3:[function(_dereq_,module,exports){
 /*
  * classList.js: Cross-browser full element.classList implementation.
  * 2014-07-23
@@ -837,18 +843,20 @@ if ("document" in window.self) {
 },{}],4:[function(_dereq_,module,exports){
 _dereq_('../../modules/es6.array.find');
 module.exports = _dereq_('../../modules/$.core').Array.find;
-},{"../../modules/$.core":11,"../../modules/es6.array.find":31}],5:[function(_dereq_,module,exports){
+},{"../../modules/$.core":12,"../../modules/es6.array.find":30}],5:[function(_dereq_,module,exports){
 _dereq_('../../modules/es6.object.assign');
 module.exports = _dereq_('../../modules/$.core').Object.assign;
-},{"../../modules/$.core":11,"../../modules/es6.object.assign":32}],6:[function(_dereq_,module,exports){
+},{"../../modules/$.core":12,"../../modules/es6.object.assign":31}],6:[function(_dereq_,module,exports){
 _dereq_('../../modules/es7.regexp.escape');
 module.exports = _dereq_('../../modules/$.core').RegExp.escape;
-},{"../../modules/$.core":11,"../../modules/es7.regexp.escape":33}],7:[function(_dereq_,module,exports){
+},{"../../modules/$.core":12,"../../modules/es7.regexp.escape":32}],7:[function(_dereq_,module,exports){
 module.exports = function(it){
   if(typeof it != 'function')throw TypeError(it + ' is not a function!');
   return it;
 };
 },{}],8:[function(_dereq_,module,exports){
+module.exports = function(){ /* empty */ };
+},{}],9:[function(_dereq_,module,exports){
 // 0 -> Array#forEach
 // 1 -> Array#map
 // 2 -> Array#filter
@@ -857,20 +865,10 @@ module.exports = function(it){
 // 5 -> Array#find
 // 6 -> Array#findIndex
 var ctx      = _dereq_('./$.ctx')
-  , isObject = _dereq_('./$.is-object')
   , IObject  = _dereq_('./$.iobject')
   , toObject = _dereq_('./$.to-object')
   , toLength = _dereq_('./$.to-length')
-  , isArray  = _dereq_('./$.is-array')
-  , SPECIES  = _dereq_('./$.wks')('species');
-// 9.4.2.3 ArraySpeciesCreate(originalArray, length)
-var ASC = function(original, length){
-  var C;
-  if(isArray(original) && isObject(C = original.constructor)){
-    C = C[SPECIES];
-    if(C === null)C = undefined;
-  } return new(C === undefined ? Array : C)(length);
-};
+  , asc      = _dereq_('./$.array-species-create');
 module.exports = function(TYPE){
   var IS_MAP        = TYPE == 1
     , IS_FILTER     = TYPE == 2
@@ -884,7 +882,7 @@ module.exports = function(TYPE){
       , f      = ctx(callbackfn, that, 3)
       , length = toLength(self.length)
       , index  = 0
-      , result = IS_MAP ? ASC($this, length) : IS_FILTER ? ASC($this, 0) : undefined
+      , result = IS_MAP ? asc($this, length) : IS_FILTER ? asc($this, 0) : undefined
       , val, res;
     for(;length > index; index++)if(NO_HOLES || index in self){
       val = self[index];
@@ -902,47 +900,33 @@ module.exports = function(TYPE){
     return IS_FIND_INDEX ? -1 : IS_SOME || IS_EVERY ? IS_EVERY : result;
   };
 };
-},{"./$.ctx":12,"./$.iobject":19,"./$.is-array":20,"./$.is-object":21,"./$.to-length":26,"./$.to-object":27,"./$.wks":30}],9:[function(_dereq_,module,exports){
-// 19.1.2.1 Object.assign(target, source, ...)
-var toObject = _dereq_('./$.to-object')
-  , IObject  = _dereq_('./$.iobject')
-  , enumKeys = _dereq_('./$.enum-keys')
-  , has      = _dereq_('./$.has');
-
-// should work with symbols and should have deterministic property order (V8 bug)
-module.exports = _dereq_('./$.fails')(function(){
-  var a = Object.assign
-    , A = {}
-    , B = {}
-    , S = Symbol()
-    , K = 'abcdefghijklmnopqrst';
-  A[S] = 7;
-  K.split('').forEach(function(k){ B[k] = k; });
-  return a({}, A)[S] != 7 || Object.keys(a({}, B)).join('') != K;
-}) ? function assign(target, source){   // eslint-disable-line no-unused-vars
-  var T = toObject(target)
-    , l = arguments.length
-    , i = 1;
-  while(l > i){
-    var S      = IObject(arguments[i++])
-      , keys   = enumKeys(S)
-      , length = keys.length
-      , j      = 0
-      , key;
-    while(length > j)if(has(S, key = keys[j++]))T[key] = S[key];
-  }
-  return T;
-} : Object.assign;
-},{"./$.enum-keys":15,"./$.fails":16,"./$.has":18,"./$.iobject":19,"./$.to-object":27}],10:[function(_dereq_,module,exports){
+},{"./$.array-species-create":10,"./$.ctx":13,"./$.iobject":18,"./$.to-length":26,"./$.to-object":27}],10:[function(_dereq_,module,exports){
+// 9.4.2.3 ArraySpeciesCreate(originalArray, length)
+var isObject = _dereq_('./$.is-object')
+  , isArray  = _dereq_('./$.is-array')
+  , SPECIES  = _dereq_('./$.wks')('species');
+module.exports = function(original, length){
+  var C;
+  if(isArray(original)){
+    C = original.constructor;
+    // cross-realm fallback
+    if(typeof C == 'function' && (C === Array || isArray(C.prototype)))C = undefined;
+    if(isObject(C)){
+      C = C[SPECIES];
+      if(C === null)C = undefined;
+    }
+  } return new (C === undefined ? Array : C)(length);
+};
+},{"./$.is-array":19,"./$.is-object":20,"./$.wks":29}],11:[function(_dereq_,module,exports){
 var toString = {}.toString;
 
 module.exports = function(it){
   return toString.call(it).slice(8, -1);
 };
-},{}],11:[function(_dereq_,module,exports){
-var core = module.exports = {version: '1.2.0'};
-if(typeof __e == 'number')__e = core; // eslint-disable-line no-undef
 },{}],12:[function(_dereq_,module,exports){
+var core = module.exports = {version: '1.2.6'};
+if(typeof __e == 'number')__e = core; // eslint-disable-line no-undef
+},{}],13:[function(_dereq_,module,exports){
 // optional / simple context binding
 var aFunction = _dereq_('./$.a-function');
 module.exports = function(fn, that, length){
@@ -963,76 +947,60 @@ module.exports = function(fn, that, length){
     return fn.apply(that, arguments);
   };
 };
-},{"./$.a-function":7}],13:[function(_dereq_,module,exports){
-var global    = _dereq_('./$.global')
-  , core      = _dereq_('./$.core')
-  , PROTOTYPE = 'prototype';
-var ctx = function(fn, that){
-  return function(){
-    return fn.apply(that, arguments);
-  };
-};
-var $def = function(type, name, source){
-  var key, own, out, exp
-    , isGlobal = type & $def.G
-    , isProto  = type & $def.P
-    , target   = isGlobal ? global : type & $def.S
-        ? global[name] : (global[name] || {})[PROTOTYPE]
-    , exports  = isGlobal ? core : core[name] || (core[name] = {});
-  if(isGlobal)source = name;
-  for(key in source){
-    // contains in native
-    own = !(type & $def.F) && target && key in target;
-    if(own && key in exports)continue;
-    // export native or passed
-    out = own ? target[key] : source[key];
-    // prevent global pollution for namespaces
-    if(isGlobal && typeof target[key] != 'function')exp = source[key];
-    // bind timers to global for call from export context
-    else if(type & $def.B && own)exp = ctx(out, global);
-    // wrap global constructors for prevent change them in library
-    else if(type & $def.W && target[key] == out)!function(C){
-      exp = function(param){
-        return this instanceof C ? new C(param) : C(param);
-      };
-      exp[PROTOTYPE] = C[PROTOTYPE];
-    }(out);
-    else exp = isProto && typeof out == 'function' ? ctx(Function.call, out) : out;
-    // export
-    exports[key] = exp;
-    if(isProto)(exports[PROTOTYPE] || (exports[PROTOTYPE] = {}))[key] = out;
-  }
-};
-// type bitmap
-$def.F = 1;  // forced
-$def.G = 2;  // global
-$def.S = 4;  // static
-$def.P = 8;  // proto
-$def.B = 16; // bind
-$def.W = 32; // wrap
-module.exports = $def;
-},{"./$.core":11,"./$.global":17}],14:[function(_dereq_,module,exports){
+},{"./$.a-function":7}],14:[function(_dereq_,module,exports){
 // 7.2.1 RequireObjectCoercible(argument)
 module.exports = function(it){
   if(it == undefined)throw TypeError("Can't call method on  " + it);
   return it;
 };
 },{}],15:[function(_dereq_,module,exports){
-// all enumerable object keys, includes symbols
-var $ = _dereq_('./$');
-module.exports = function(it){
-  var keys       = $.getKeys(it)
-    , getSymbols = $.getSymbols;
-  if(getSymbols){
-    var symbols = getSymbols(it)
-      , isEnum  = $.isEnum
-      , i       = 0
-      , key;
-    while(symbols.length > i)if(isEnum.call(it, key = symbols[i++]))keys.push(key);
+var global    = _dereq_('./$.global')
+  , core      = _dereq_('./$.core')
+  , ctx       = _dereq_('./$.ctx')
+  , PROTOTYPE = 'prototype';
+
+var $export = function(type, name, source){
+  var IS_FORCED = type & $export.F
+    , IS_GLOBAL = type & $export.G
+    , IS_STATIC = type & $export.S
+    , IS_PROTO  = type & $export.P
+    , IS_BIND   = type & $export.B
+    , IS_WRAP   = type & $export.W
+    , exports   = IS_GLOBAL ? core : core[name] || (core[name] = {})
+    , target    = IS_GLOBAL ? global : IS_STATIC ? global[name] : (global[name] || {})[PROTOTYPE]
+    , key, own, out;
+  if(IS_GLOBAL)source = name;
+  for(key in source){
+    // contains in native
+    own = !IS_FORCED && target && key in target;
+    if(own && key in exports)continue;
+    // export native or passed
+    out = own ? target[key] : source[key];
+    // prevent global pollution for namespaces
+    exports[key] = IS_GLOBAL && typeof target[key] != 'function' ? source[key]
+    // bind timers to global for call from export context
+    : IS_BIND && own ? ctx(out, global)
+    // wrap global constructors for prevent change them in library
+    : IS_WRAP && target[key] == out ? (function(C){
+      var F = function(param){
+        return this instanceof C ? new C(param) : C(param);
+      };
+      F[PROTOTYPE] = C[PROTOTYPE];
+      return F;
+    // make static versions for prototype methods
+    })(out) : IS_PROTO && typeof out == 'function' ? ctx(Function.call, out) : out;
+    if(IS_PROTO)(exports[PROTOTYPE] || (exports[PROTOTYPE] = {}))[key] = out;
   }
-  return keys;
 };
-},{"./$":22}],16:[function(_dereq_,module,exports){
+// type bitmap
+$export.F = 1;  // forced
+$export.G = 2;  // global
+$export.S = 4;  // static
+$export.P = 8;  // proto
+$export.B = 16; // bind
+$export.W = 32; // wrap
+module.exports = $export;
+},{"./$.core":12,"./$.ctx":13,"./$.global":17}],16:[function(_dereq_,module,exports){
 module.exports = function(exec){
   try {
     return !!exec();
@@ -1042,32 +1010,26 @@ module.exports = function(exec){
 };
 },{}],17:[function(_dereq_,module,exports){
 // https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
-var UNDEFINED = 'undefined';
-var global = module.exports = typeof window != UNDEFINED && window.Math == Math
-  ? window : typeof self != UNDEFINED && self.Math == Math ? self : Function('return this')();
+var global = module.exports = typeof window != 'undefined' && window.Math == Math
+  ? window : typeof self != 'undefined' && self.Math == Math ? self : Function('return this')();
 if(typeof __g == 'number')__g = global; // eslint-disable-line no-undef
 },{}],18:[function(_dereq_,module,exports){
-var hasOwnProperty = {}.hasOwnProperty;
-module.exports = function(it, key){
-  return hasOwnProperty.call(it, key);
-};
-},{}],19:[function(_dereq_,module,exports){
-// indexed object, fallback for non-array-like ES3 strings
+// fallback for non-array-like ES3 and non-enumerable old V8 strings
 var cof = _dereq_('./$.cof');
-module.exports = 0 in Object('z') ? Object : function(it){
+module.exports = Object('z').propertyIsEnumerable(0) ? Object : function(it){
   return cof(it) == 'String' ? it.split('') : Object(it);
 };
-},{"./$.cof":10}],20:[function(_dereq_,module,exports){
+},{"./$.cof":11}],19:[function(_dereq_,module,exports){
 // 7.2.2 IsArray(argument)
 var cof = _dereq_('./$.cof');
 module.exports = Array.isArray || function(arg){
   return cof(arg) == 'Array';
 };
-},{"./$.cof":10}],21:[function(_dereq_,module,exports){
+},{"./$.cof":11}],20:[function(_dereq_,module,exports){
 module.exports = function(it){
   return typeof it === 'object' ? it !== null : typeof it === 'function';
 };
-},{}],22:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 var $Object = Object;
 module.exports = {
   create:     $Object.create,
@@ -1081,7 +1043,41 @@ module.exports = {
   getSymbols: $Object.getOwnPropertySymbols,
   each:       [].forEach
 };
-},{}],23:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
+// 19.1.2.1 Object.assign(target, source, ...)
+var $        = _dereq_('./$')
+  , toObject = _dereq_('./$.to-object')
+  , IObject  = _dereq_('./$.iobject');
+
+// should work with symbols and should have deterministic property order (V8 bug)
+module.exports = _dereq_('./$.fails')(function(){
+  var a = Object.assign
+    , A = {}
+    , B = {}
+    , S = Symbol()
+    , K = 'abcdefghijklmnopqrst';
+  A[S] = 7;
+  K.split('').forEach(function(k){ B[k] = k; });
+  return a({}, A)[S] != 7 || Object.keys(a({}, B)).join('') != K;
+}) ? function assign(target, source){ // eslint-disable-line no-unused-vars
+  var T     = toObject(target)
+    , $$    = arguments
+    , $$len = $$.length
+    , index = 1
+    , getKeys    = $.getKeys
+    , getSymbols = $.getSymbols
+    , isEnum     = $.isEnum;
+  while($$len > index){
+    var S      = IObject($$[index++])
+      , keys   = getSymbols ? getKeys(S).concat(getSymbols(S)) : getKeys(S)
+      , length = keys.length
+      , j      = 0
+      , key;
+    while(length > j)if(isEnum.call(S, key = keys[j++]))T[key] = S[key];
+  }
+  return T;
+} : Object.assign;
+},{"./$":21,"./$.fails":16,"./$.iobject":18,"./$.to-object":27}],23:[function(_dereq_,module,exports){
 module.exports = function(regExp, replace){
   var replacer = replace === Object(replace) ? function(part){
     return replace[part];
@@ -1124,41 +1120,48 @@ module.exports = function(key){
   return 'Symbol('.concat(key === undefined ? '' : key, ')_', (++id + px).toString(36));
 };
 },{}],29:[function(_dereq_,module,exports){
-module.exports = function(){ /* empty */ };
-},{}],30:[function(_dereq_,module,exports){
 var store  = _dereq_('./$.shared')('wks')
+  , uid    = _dereq_('./$.uid')
   , Symbol = _dereq_('./$.global').Symbol;
 module.exports = function(name){
   return store[name] || (store[name] =
-    Symbol && Symbol[name] || (Symbol || _dereq_('./$.uid'))('Symbol.' + name));
+    Symbol && Symbol[name] || (Symbol || uid)('Symbol.' + name));
 };
-},{"./$.global":17,"./$.shared":24,"./$.uid":28}],31:[function(_dereq_,module,exports){
+},{"./$.global":17,"./$.shared":24,"./$.uid":28}],30:[function(_dereq_,module,exports){
 'use strict';
 // 22.1.3.8 Array.prototype.find(predicate, thisArg = undefined)
-var KEY    = 'find'
-  , $def   = _dereq_('./$.def')
-  , forced = true
-  , $find  = _dereq_('./$.array-methods')(5);
+var $export = _dereq_('./$.export')
+  , $find   = _dereq_('./$.array-methods')(5)
+  , KEY     = 'find'
+  , forced  = true;
 // Shouldn't skip holes
 if(KEY in [])Array(1)[KEY](function(){ forced = false; });
-$def($def.P + $def.F * forced, 'Array', {
+$export($export.P + $export.F * forced, 'Array', {
   find: function find(callbackfn/*, that = undefined */){
-    return $find(this, callbackfn, arguments[1]);
+    return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
 });
-_dereq_('./$.unscope')(KEY);
-},{"./$.array-methods":8,"./$.def":13,"./$.unscope":29}],32:[function(_dereq_,module,exports){
+_dereq_('./$.add-to-unscopables')(KEY);
+},{"./$.add-to-unscopables":8,"./$.array-methods":9,"./$.export":15}],31:[function(_dereq_,module,exports){
 // 19.1.3.1 Object.assign(target, source)
-var $def = _dereq_('./$.def');
+var $export = _dereq_('./$.export');
 
-$def($def.S + $def.F, 'Object', {assign: _dereq_('./$.assign')});
-},{"./$.assign":9,"./$.def":13}],33:[function(_dereq_,module,exports){
+$export($export.S + $export.F, 'Object', {assign: _dereq_('./$.object-assign')});
+},{"./$.export":15,"./$.object-assign":22}],32:[function(_dereq_,module,exports){
 // https://github.com/benjamingr/RexExp.escape
-var $def = _dereq_('./$.def')
-  , $re  = _dereq_('./$.replacer')(/[\\^$*+?.()|[\]{}]/g, '\\$&');
-$def($def.S, 'RegExp', {escape: function escape(it){ return $re(it); }});
+var $export = _dereq_('./$.export')
+  , $re     = _dereq_('./$.replacer')(/[\\^$*+?.()|[\]{}]/g, '\\$&');
 
-},{"./$.def":13,"./$.replacer":23}],34:[function(_dereq_,module,exports){
+$export($export.S, 'RegExp', {escape: function escape(it){ return $re(it); }});
+
+},{"./$.export":15,"./$.replacer":23}],33:[function(_dereq_,module,exports){
+module.exports = Date.now || now
+
+function now() {
+    return new Date().getTime()
+}
+
+},{}],34:[function(_dereq_,module,exports){
 
 /**
  * Module dependencies.
@@ -1213,14 +1216,7 @@ module.exports = function debounce(func, wait, immediate){
   };
 };
 
-},{"date-now":35}],35:[function(_dereq_,module,exports){
-module.exports = Date.now || now
-
-function now() {
-    return new Date().getTime()
-}
-
-},{}],36:[function(_dereq_,module,exports){
+},{"date-now":33}],35:[function(_dereq_,module,exports){
 (function (ELEMENT) {
 	ELEMENT.matches = ELEMENT.matches || ELEMENT.mozMatchesSelector || ELEMENT.msMatchesSelector || ELEMENT.oMatchesSelector || ELEMENT.webkitMatchesSelector;
 
@@ -1239,7 +1235,7 @@ function now() {
 	};
 }(Element.prototype));
 
-},{}],37:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 var Parser = _dereq_('./lib/parser')
   , Resource = _dereq_('./lib/resource')
   , validationFlag = false;
@@ -1262,7 +1258,7 @@ module.exports = {
 
 };
 
-},{"./lib/parser":39,"./lib/resource":40}],38:[function(_dereq_,module,exports){
+},{"./lib/parser":38,"./lib/resource":39}],37:[function(_dereq_,module,exports){
 'use strict';
 
 /*
@@ -1307,7 +1303,7 @@ ImmutableStack.prototype.peek = function() {
 
 module.exports = ImmutableStack;
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var Resource = _dereq_('./resource')
@@ -1517,7 +1513,7 @@ function pathToString(path) {
 
 module.exports = Parser;
 
-},{"./immutable_stack":38,"./resource":40}],40:[function(_dereq_,module,exports){
+},{"./immutable_stack":37,"./resource":39}],39:[function(_dereq_,module,exports){
 'use strict';
 
 function Resource(links, curies, embedded, validationIssues) {
@@ -1646,9 +1642,9 @@ Resource.prototype.validation = Resource.prototype.validationIssues;
 
 module.exports = Resource;
 
+},{}],40:[function(_dereq_,module,exports){
+module.exports=function(n){var o={},t=[];n=n||this,n.on=function(n,t,e){(o[n]=o[n]||[]).push([t,e])},n.off=function(n,e){n||(o={});for(var f=o[n]||t,i=f.length=e?f.length:0;i--;)e==f[i][0]&&f.splice(i,1)},n.emit=function(n){for(var e,f=o[n]||t,i=0;e=f[i++];)e[0].apply(e[1],t.slice.call(arguments,1))}};
 },{}],41:[function(_dereq_,module,exports){
-module.exports=function(n){var o,t,e,f={},i=[];n=n||this,n.on=function(n,o,t){(f[n]=f[n]||[]).push([o,t])},n.off=function(n,t){for(n||(f={}),o=f[n]||i,e=o.length=t?o.length:0;e--;)t==o[e][0]&&o.splice(e,1)},n.emit=function(n){for(o=f[n]||i,e=0;t=o[e++];)t[0].apply(t[1],i.slice.call(arguments,1))}};
-},{}],42:[function(_dereq_,module,exports){
 module.exports={"v":3,"t":[{"t":7,"e":"input","a":{"type":"text","autocomplete":"off","value":[{"t":2,"r":"query"}],"class":["tp-ac__input ",{"t":2,"r":"class"}],"placeholder":[{"t":2,"r":"placeholder"}],"tabindex":[{"t":2,"r":"tabindex"}]}}]}
 },{}]},{},[1])(1)
 });
