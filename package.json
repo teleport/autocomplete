@@ -15,9 +15,11 @@
   "main": "dist/teleport-autocomplete.js",
   "repository": "teleport/autocomplete",
   "scripts": {
-    "start": "./node_modules/.bin/gulp",
     "build": "./node_modules/.bin/gulp build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "postversion": "git push && git push --tags",
+    "start": "./node_modules/.bin/gulp",
+    "test": "exit 0",
+    "version": "npm run build && git add -A dist"
   },
   "dependencies": {
     "classlist-polyfill": "^1.0.2",
