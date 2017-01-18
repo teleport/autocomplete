@@ -15,9 +15,9 @@
   "main": "dist/teleport-autocomplete.js",
   "repository": "teleport/autocomplete",
   "scripts": {
-    "build": "./node_modules/.bin/gulp build",
+    "build": "gulp build",
     "postversion": "git push && git push --tags",
-    "start": "./node_modules/.bin/gulp",
+    "start": "gulp",
     "test": "exit 0",
     "version": "npm run build && git add -A dist"
   },
