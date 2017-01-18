@@ -338,7 +338,8 @@ class TeleportAutocomplete {
     const embed = `city:search-results/city:item/${this.embeds ? `{${this.embeds}}` : ''}`;
 
     const req = new XMLHttpRequest();
-    req.open('GET', `${this.apiRoot}/cities/?search=${this.query}&embed=${embed}&limit=${this.maxItems}`);
+    const query = encodeURIComponent(this.query);
+    req.open('GET', `${this.apiRoot}/cities/?search=${query}&embed=${embed}&limit=${this.maxItems}`);
     req.setRequestHeader('Accept', `application/vnd.teleport.v${this.apiVersion}+json`);
     req.addEventListener('load', () => {
       const results = halfred.parse(JSON.parse(req.response))
