@@ -1,4 +1,4 @@
-/*! teleport-autocomplete - v0.3.1 | https://github.com/teleport/autocomplete#readme | MIT */
+/*! teleport-autocomplete - v0.3.2 | https://github.com/teleport/autocomplete#readme | MIT */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.TeleportAutocomplete = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 /* global Ractive */
 
@@ -519,7 +519,8 @@ var TeleportAutocomplete = (function () {
       var embed = 'city:search-results/city:item/' + (this.embeds ? '{' + this.embeds + '}' : '');
 
       var req = new XMLHttpRequest();
-      req.open('GET', this.apiRoot + '/cities/?search=' + this.query + '&embed=' + embed + '&limit=' + this.maxItems);
+      var query = encodeURIComponent(this.query);
+      req.open('GET', this.apiRoot + '/cities/?search=' + query + '&embed=' + embed + '&limit=' + this.maxItems);
       req.setRequestHeader('Accept', 'application/vnd.teleport.v' + this.apiVersion + '+json');
       req.addEventListener('load', function () {
         var results = _halfred2['default'].parse(JSON.parse(req.response)).embeddedArray('city:search-results').map(function (res) {
@@ -620,7 +621,9 @@ module.exports = exports['default'];
 if ("document" in window.self) {
 
   // Full polyfill for browsers with no classList support
-  if (!("classList" in document.createElement("_"))) {
+  // Including IE < Edge missing SVGElement.classList
+  if (!("classList" in document.createElement("_"))
+    || document.createElementNS && !("classList" in document.createElementNS("http://www.w3.org/2000/svg","g"))) {
 
   (function (view) {
 
@@ -1643,11 +1646,10 @@ Resource.prototype.validation = Resource.prototype.validationIssues;
 module.exports = Resource;
 
 },{}],40:[function(_dereq_,module,exports){
-module.exports=function(n){var o={},t=[];n=n||this,n.on=function(n,t,e){(o[n]=o[n]||[]).push([t,e])},n.off=function(n,e){n||(o={});for(var f=o[n]||t,i=f.length=e?f.length:0;i--;)e==f[i][0]&&f.splice(i,1)},n.emit=function(n){for(var e,f=o[n]||t,i=0;e=f[i++];)e[0].apply(e[1],t.slice.call(arguments,1))}};
+module.exports=function(n){var t={},e=[];n=n||this,n.on=function(n,e,l){(t[n]=t[n]||[]).push([e,l])},n.off=function(n,l){n||(t={});for(var o=t[n]||e,i=o.length=l?o.length:0;i--;)l==o[i][0]&&o.splice(i,1)},n.emit=function(n){for(var l,o=t[n]||e,i=o.length>0?o.slice(0,o.length):o,c=0;l=i[c++];)l[0].apply(l[1],e.slice.call(arguments,1))}};
 },{}],41:[function(_dereq_,module,exports){
-module.exports={"v":3,"t":[{"t":7,"e":"input","a":{"type":"text","autocomplete":"off","value":[{"t":2,"r":"query"}],"class":["tp-ac__input ",{"t":2,"r":"class"}],"placeholder":[{"t":2,"r":"placeholder"}],"tabindex":[{"t":2,"r":"tabindex"}]}}]}
+module.exports={"v":4,"t":[{"t":7,"e":"input","m":[{"n":"type","f":"text","t":13},{"n":"autocomplete","f":"off","t":13},{"n":"value","f":[{"t":2,"r":"query"}],"t":13},{"n":"class","f":["tp-ac__input ",{"t":2,"r":"class"}],"t":13},{"n":"placeholder","f":[{"t":2,"r":"placeholder"}],"t":13},{"n":"tabindex","f":[{"t":2,"r":"tabindex"}],"t":13}]}]}
 },{}]},{},[1])(1)
 });
-
 
 //# sourceMappingURL=teleport-autocomplete-ractive.js.map
