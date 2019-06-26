@@ -1,3 +1,6 @@
+# DEPRECATED
+This project has been deprecated and archived. Please use [Teleport City Search API](http://developers.teleport.org/api/reference/#!/cities/searchCities) directly with your preferred autocomplete library.
+
 # Teleport Cities Autocomplete
 
 An autocomplete widget for entering city names based on [Teleport APIs](https://developers.teleport.org/api/).
